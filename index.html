@@ -19,6 +19,53 @@
       flex-direction: column;
     }
 
+    /* ELMO WARM-UP MODAL */
+    #join-modal {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(9, 10, 15, 0.96);
+      backdrop-filter: blur(10px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .modal-card {
+      background: #131722;
+      border: 1px solid #2a3447;
+      padding: 25px;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 480px;
+      text-align: center;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.7);
+    }
+    .modal-card h2 { color: #ff3b30; margin-top: 0; font-size: 22px; }
+    .game-instruction { color: #9ca3af; font-size: 13px; margin-bottom: 10px; }
+
+    #dino-canvas {
+      background: linear-gradient(to bottom, #120402, #070201);
+      border: 1px solid #ff4500;
+      border-radius: 10px;
+      display: block;
+      margin: 0 auto 15px auto;
+      cursor: pointer;
+    }
+    .score-badge { font-weight: bold; color: #ff3b30; font-size: 16px; margin-bottom: 15px; }
+
+    #name-section { display: none; animation: fadeIn 0.4s ease forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    #name-section input {
+      width: 100%; padding: 12px; font-size: 15px; margin-bottom: 12px;
+      border-radius: 8px; border: 1px solid #3a475d; background: #090a0f; color: #fff; text-align: center; outline: none;
+    }
+    #name-section button {
+      width: 100%; padding: 12px; font-size: 16px; font-weight: bold; background: #ff3b30; color: white; border: none; border-radius: 8px; cursor: pointer;
+    }
+    #name-section button:hover { background: #d32f2f; }
+
+    /* STUDIO LAYOUT */
     .studio-layout {
       display: grid;
       grid-template-columns: 320px 1fr 320px;
@@ -31,7 +78,6 @@
 
     .cam-column { display: flex; flex-direction: column; gap: 15px; }
 
-    /* TEAM CONTAINER HEADER (NEUES TEAM DESIGN) */
     .team-header-card {
       padding: 12px;
       border-radius: 12px;
@@ -42,22 +88,9 @@
       text-transform: uppercase;
       box-shadow: 0 4px 15px rgba(0,0,0,0.5);
     }
+    .team-column-blau .team-header-card { background: linear-gradient(135deg, #0070f3, #003380); border: 2px solid #0070f3; color: white; box-shadow: 0 0 20px rgba(0, 112, 243, 0.4); }
+    .team-column-rot .team-header-card { background: linear-gradient(135deg, #ff3b30, #80100a); border: 2px solid #ff3b30; color: white; box-shadow: 0 0 20px rgba(255, 59, 48, 0.4); }
 
-    .team-column-blau .team-header-card {
-      background: linear-gradient(135deg, #0070f3, #003380);
-      border: 2px solid #0070f3;
-      color: white;
-      box-shadow: 0 0 20px rgba(0, 112, 243, 0.4);
-    }
-
-    .team-column-rot .team-header-card {
-      background: linear-gradient(135deg, #ff3b30, #80100a);
-      border: 2px solid #ff3b30;
-      color: white;
-      box-shadow: 0 0 20px rgba(255, 59, 48, 0.4);
-    }
-
-    /* NEUTRALER KAMERA ZUSTAND (VOR DER AUSLOSUNG) */
     .cam-box {
       background: #131722;
       border: 2px solid #4b5563;
@@ -76,39 +109,21 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      transition: background 0.5s ease;
     }
 
-    /* NACH DER AUSLOSUNG SIND BLAU UND ROT PERFEKT SORTIERT */
-    .cam-box.team-blau {
-      border-color: #0070f3 !important;
-      box-shadow: 0 0 20px rgba(0, 112, 243, 0.4) !important;
-    }
-    .cam-box.team-blau .cam-title {
-      background: linear-gradient(90deg, #0070f3, #004499) !important;
-      color: white !important;
-    }
+    .cam-box.team-blau { border-color: #0070f3 !important; box-shadow: 0 0 20px rgba(0, 112, 243, 0.4) !important; }
+    .cam-box.team-blau .cam-title { background: linear-gradient(90deg, #0070f3, #004499) !important; color: white !important; }
 
-    .cam-box.team-rot {
-      border-color: #ff3b30 !important;
-      box-shadow: 0 0 20px rgba(255, 59, 48, 0.4) !important;
-    }
-    .cam-box.team-rot .cam-title {
-      background: linear-gradient(90deg, #ff3b30, #b31a12) !important;
-      color: white !important;
-    }
+    .cam-box.team-rot { border-color: #ff3b30 !important; box-shadow: 0 0 20px rgba(255, 59, 48, 0.4) !important; }
+    .cam-box.team-rot .cam-title { background: linear-gradient(90deg, #ff3b30, #b31a12) !important; color: white !important; }
 
-    .cam-box.in-focus-stage {
-      opacity: 0.25;
-      transform: scale(0.95);
-    }
+    .cam-box.in-focus-stage { opacity: 0.25; transform: scale(0.95); }
 
     iframe { width: 100%; height: 185px; border: none; display: block; }
     .disabled-slot { display: none !important; }
 
     .center-stage { display: flex; flex-direction: column; gap: 15px; flex-grow: 1; }
 
-    /* HOST WIDGET OBEN */
     .host-header-widget {
       display: flex;
       gap: 20px;
@@ -120,26 +135,13 @@
       box-shadow: 0 0 25px rgba(255, 255, 255, 0.25);
       position: relative;
     }
-    .host-cam-mini {
-      width: 220px;
-      height: 125px;
-      border-radius: 8px;
-      overflow: hidden;
-      border: 2px solid #fff;
-      flex-shrink: 0;
-    }
+    .host-cam-mini { width: 220px; height: 125px; border-radius: 8px; overflow: hidden; border: 2px solid #fff; flex-shrink: 0; }
     .host-cam-mini iframe { height: 125px; width: 220px; }
     
     .studio-banner {
-      flex-grow: 1;
-      text-align: center;
-      font-size: 32px;
-      font-weight: 900;
-      letter-spacing: 3px;
+      flex-grow: 1; text-align: center; font-size: 32px; font-weight: 900; letter-spacing: 3px;
       background: linear-gradient(135deg, #ff0070, #0070f3);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      text-transform: uppercase;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase;
     }
 
     .card { background: #131722; border: 1px solid #2a3447; border-radius: 12px; padding: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); display: flex; flex-direction: column; flex-grow: 1; }
@@ -158,49 +160,40 @@
     .stage-container { position: relative; display: flex; flex-direction: column; flex-grow: 1; min-height: 380px; overflow: hidden; }
     .team-badge { font-size: 10px; padding: 2px 8px; border-radius: 4px; background: rgba(0, 0, 0, 0.3); }
 
-    /* GROSSE BÜHNEN-KAMERA IN DER MITTE */
-    .fokus-stage-box {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-      padding: 10px;
-      animation: flyCenter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-    @keyframes flyCenter {
-      0% { transform: scale(0.6); opacity: 0; }
-      100% { transform: scale(1); opacity: 1; }
-    }
+    .fokus-stage-box { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 10px; animation: flyCenter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    @keyframes flyCenter { 0% { transform: scale(0.6); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
     .fokus-cam-wrapper {
-      width: 100%;
-      max-width: 620px;
-      height: 350px;
-      border-radius: 16px;
-      overflow: hidden;
-      border: 4px solid #4b5563;
-      box-shadow: 0 0 40px rgba(0,0,0,0.85);
-      transition: all 0.5s ease;
+      width: 100%; max-width: 620px; height: 350px; border-radius: 16px; overflow: hidden; border: 4px solid #4b5563; box-shadow: 0 0 40px rgba(0,0,0,0.85); transition: all 0.5s ease;
     }
-    .fokus-cam-wrapper.flash-blau {
-      border-color: #0070f3 !important;
-      box-shadow: 0 0 60px rgba(0, 112, 243, 0.95) !important;
-    }
-    .fokus-cam-wrapper.flash-rot {
-      border-color: #ff3b30 !important;
-      box-shadow: 0 0 60px rgba(255, 59, 48, 0.95) !important;
-    }
+    .fokus-cam-wrapper.flash-blau { border-color: #0070f3 !important; box-shadow: 0 0 60px rgba(0, 112, 243, 0.95) !important; }
+    .fokus-cam-wrapper.flash-rot { border-color: #ff3b30 !important; box-shadow: 0 0 60px rgba(255, 59, 48, 0.95) !important; }
     .fokus-cam-wrapper iframe { width: 100%; height: 100%; }
   </style>
 </head>
 <body>
+
+  <!-- ELMO WARM-UP MODAL -->
+  <div id="join-modal">
+    <div class="modal-card">
+      <h2>🔥 Elmo's Fire Escape</h2>
+      <p class="game-instruction">Springe über die Polizisten und erreiche mindestens <b>69 Punkte</b>!<br>(Leertaste oder Klick zum Springen)</p>
+      
+      <canvas id="dino-canvas" width="400" height="150"></canvas>
+      <div class="score-badge">Score: <span id="score-counter">0</span> / 69</div>
+
+      <div id="name-section">
+        <p style="color: #ff3b30; font-weight: bold; margin-top: 0;">🎉 Entkommen! Elmo ist bereit. Dein Name:</p>
+        <input type="text" id="modal-name-input" placeholder="z.B. Lukas" autofocus>
+        <button onclick="spielBetreten()">Ins Studio eintreten</button>
+      </div>
+    </div>
+  </div>
 
   <div class="studio-layout">
     
     <!-- LINKS: SPALTE TEAM BLAU -->
     <div class="cam-column team-column-blau" id="col-links">
       <div class="team-header-card" id="header-team-blau">🔵 TEAM BLAU</div>
-      <!-- Hier werden dynamisch alle Blau-Mitglieder einsortiert -->
       <div class="cam-box" id="box-player_1"><div class="cam-title"><span id="title-player_1">Spieler 1</span> <span class="team-badge" id="badge-player_1">NEUTRAL</span></div><iframe src="https://vdo.ninja/?view=player_1&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
       <div class="cam-box" id="box-player_3"><div class="cam-title"><span id="title-player_3">Spieler 3</span> <span class="team-badge" id="badge-player_3">NEUTRAL</span></div><iframe src="https://vdo.ninja/?view=player_3&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
       <div class="cam-box" id="box-player_5"><div class="cam-title"><span id="title-player_5">Spieler 5</span> <span class="team-badge" id="badge-player_5">NEUTRAL</span></div><iframe src="https://vdo.ninja/?view=player_5&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
@@ -210,7 +203,6 @@
     <!-- MITTE: HOST WIDGET OBEN + QUIZ STAGE -->
     <div class="center-stage">
       
-      <!-- HOST WIDGET OBEN -->
       <div class="host-header-widget">
         <div class="host-cam-mini">
           <iframe src="https://vdo.ninja/?view=host_cam&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe>
@@ -218,7 +210,6 @@
         <div class="studio-banner">ELMO-QUIZ</div>
       </div>
 
-      <!-- DYNAMISCHE BÜHNE -->
       <div id="dynamic-game-stage" class="stage-container card">
         <div id="modul-normal" style="display: flex; flex-direction: column; height: 100%;">
           <div class="question-label">Aktuelle Quiz-Frage</div>
@@ -236,7 +227,6 @@
     <!-- RECHTS: SPALTE TEAM ROT -->
     <div class="cam-column team-column-rot" id="col-rechts">
       <div class="team-header-card" id="header-team-rot">🔴 TEAM ROT</div>
-      <!-- Hier werden dynamisch alle Rot-Mitglieder einsortiert -->
       <div class="cam-box" id="box-player_2"><div class="cam-title"><span id="title-player_2">Spieler 2</span> <span class="team-badge" id="badge-player_2">NEUTRAL</span></div><iframe src="https://vdo.ninja/?view=player_2&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
       <div class="cam-box" id="box-player_4"><div class="cam-title"><span id="title-player_4">Spieler 4</span> <span class="team-badge" id="badge-player_4">NEUTRAL</span></div><iframe src="https://vdo.ninja/?view=player_4&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
       <div class="cam-box" id="box-player_6"><div class="cam-title"><span id="title-player_6">Spieler 6</span> <span class="team-badge" id="badge-player_6">NEUTRAL</span></div><iframe src="https://vdo.ninja/?view=player_6&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
@@ -247,10 +237,107 @@
 
   <script>
     const supabaseClient = supabase.createClient(SUPABASE_CONFIG.URL, SUPABASE_CONFIG.KEY);
-    const MY_SLOT = "player_1";
+    const MY_SLOT = "player_1"; // Diesen Wert pro Browser-Tab anpassen (z.B. player_2 etc.)
+    let meinName = "Gast";
+    let finalScore = 0;
 
-    let teamAssignments = {};
+    async function spielBetreten() {
+      const inputVal = document.getElementById('modal-name-input').value.trim();
+      if (inputVal) {
+        meinName = inputVal;
+        await supabaseClient.from('player_slots').update({ spieler_name: meinName }).eq('slot_id', MY_SLOT);
+      }
+      
+      await supabaseClient.from('buzzer_log').insert([{ 
+        spieler_name: `${meinName} (Elmo Score: ${finalScore})` 
+      }]);
 
+      document.getElementById('join-modal').style.display = 'none';
+    }
+
+    /* --- ELMO WARM-UP ENGINE --- */
+    const canvas = document.getElementById('dino-canvas');
+    const ctx = canvas.getContext('2d');
+    let score = 0;
+    let gameOver = false;
+    let unlocked = false;
+
+    let elmo = { x: 35, y: 100, w: 22, h: 32, vy: 0, gravity: 0.6, jumping: false };
+    let obstacles = [];
+    let frame = 0;
+
+    function jump() {
+      if (!elmo.jumping && !gameOver) {
+        elmo.vy = -10.5;
+        elmo.jumping = true;
+      }
+      if (gameOver) restartGame();
+    }
+
+    document.addEventListener('keydown', e => { if (e.code === 'Space' || e.code === 'ArrowUp') { e.preventDefault(); jump(); } });
+    canvas.addEventListener('click', jump);
+
+    function restartGame() {
+      score = 0; obstacles = []; gameOver = false; elmo.y = 100; elmo.vy = 0; elmo.jumping = false;
+      document.getElementById('score-counter').innerText = 0;
+      updateElmoGame();
+    }
+
+    function updateElmoGame() {
+      if (gameOver) return;
+      frame++;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      ctx.strokeStyle = '#ff3300'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(0, 135); ctx.lineTo(400, 135); ctx.stroke();
+
+      elmo.vy += elmo.gravity; elmo.y += elmo.vy;
+      if (elmo.y >= 100) { elmo.y = 100; elmo.jumping = false; }
+
+      // Elmo zeichnen
+      ctx.fillStyle = '#ff3b30'; ctx.fillRect(elmo.x + 3, elmo.y + 12, 16, 20);
+      ctx.beginPath(); ctx.arc(elmo.x + 11, elmo.y + 10, 10, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath(); ctx.arc(elmo.x + 7, elmo.y + 6, 3.5, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(elmo.x + 15, elmo.y + 6, 3.5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#000000';
+      ctx.beginPath(); ctx.arc(elmo.x + 8, elmo.y + 6, 1.2, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(elmo.x + 16, elmo.y + 6, 1.2, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#ff9500';
+      ctx.beginPath(); ctx.arc(elmo.x + 11, elmo.y + 10, 2.5, 0, Math.PI * 2); ctx.fill();
+
+      if (frame % 85 === 0) obstacles.push({ x: 400, y: 105, w: 18, h: 30 });
+
+      for (let i = 0; i < obstacles.length; i++) {
+        let obs = obstacles[i]; obs.x -= 4.2;
+        ctx.fillStyle = '#1e3a8a'; ctx.fillRect(obs.x + 3, obs.y + 12, 12, 18);
+        ctx.fillStyle = '#fbcfe8'; ctx.fillRect(obs.x + 4, obs.y + 5, 10, 8);
+        ctx.fillStyle = '#0f172a'; ctx.fillRect(obs.x + 2, obs.y, 14, 5);
+        ctx.fillStyle = (frame % 10 < 5) ? '#3b82f6' : '#60a5fa';
+        ctx.beginPath(); ctx.arc(obs.x + 9, obs.y - 2, 2.5, 0, Math.PI * 2); ctx.fill();
+
+        if (elmo.x < obs.x + obs.w && elmo.x + elmo.w > obs.x && elmo.y < obs.y + obs.h && elmo.y + elmo.h > obs.y) {
+          gameOver = true;
+          ctx.fillStyle = '#ffffff'; ctx.font = '14px sans-serif'; ctx.textAlign = 'center';
+          ctx.fillText('Verhaftet! Klick für Neustart', canvas.width / 2, 75);
+        }
+      }
+
+      obstacles = obstacles.filter(obs => obs.x > -20);
+      if (frame % 10 === 0 && !gameOver) {
+        score++; finalScore = score;
+        document.getElementById('score-counter').innerText = score;
+        if (score >= 69 && !unlocked) {
+          unlocked = true;
+          document.getElementById('name-section').style.display = 'block';
+        }
+      }
+      requestAnimationFrame(updateElmoGame);
+    }
+    updateElmoGame();
+
+
+    /* --- REALTIME LISTENER --- */
     async function ladeNamen() {
       const { data } = await supabaseClient.from('player_slots').select('*');
       if (data) {
@@ -264,13 +351,11 @@
     const channel = supabaseClient.channel('game-channel', { config: { broadcast: { self: true } } });
 
     channel
-      // DYNAMISCHE TEAM-NAMEN EMPFANGEN
       .on('broadcast', { event: 'update_team_names' }, payload => {
         const { nameBlau, nameRot } = payload.payload;
         if(nameBlau) document.getElementById('header-team-blau').innerText = `🔵 ${nameBlau.toUpperCase()}`;
         if(nameRot) document.getElementById('header-team-rot').innerText = `🔴 ${nameRot.toUpperCase()}`;
       })
-
       .on('broadcast', { event: 'update_teams' }, payload => {
         const { activeCount } = payload.payload;
         for (let i = 1; i <= 8; i++) {
@@ -278,8 +363,6 @@
           if (boxEl) boxEl.classList.toggle('disabled-slot', i > activeCount);
         }
       })
-
-      // KAMERA IN DIE MITTE HOLEN
       .on('broadcast', { event: 'focus_player' }, payload => {
         const { slotId } = payload.payload;
         const stage = document.getElementById('dynamic-game-stage');
@@ -292,12 +375,11 @@
         if (slotId) {
           const origBox = document.getElementById(`box-${slotId}`);
           if (origBox) origBox.classList.add('in-focus-stage');
-
           const pName = document.getElementById(`title-${slotId}`) ? document.getElementById(`title-${slotId}`).innerText : slotId;
 
           stage.innerHTML = `
             <div class="fokus-stage-box">
-              <h2 style="color: #0070f3; margin: 0 0 10px 0; font-size: 22px; text-transform: uppercase;" id="fokus-name-title">🎥 FOKUS: ${pName}</h2>
+              <h2 style="color: #0070f3; margin: 0 0 10px 0; font-size: 22px; text-transform: uppercase;">🎥 FOKUS: ${pName}</h2>
               <div class="fokus-cam-wrapper" id="fokus-wrapper">
                 <iframe src="https://vdo.ninja/?view=${slotId}&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe>
               </div>
@@ -316,35 +398,24 @@
           `;
         }
       })
-
-      // AUSLOSUNG / TEAM ZUWEISEN + SORTIEREN IN DIE KORREKTE SPALTE
       .on('broadcast', { event: 'assign_team_animated' }, payload => {
         const { slotId, team } = payload.payload;
         const wrapper = document.getElementById('fokus-wrapper');
         const origBox = document.getElementById(`box-${slotId}`);
         const badge = document.getElementById(`badge-${slotId}`);
 
-        if (wrapper) {
-          wrapper.classList.add(team === 'blau' ? 'flash-blau' : 'flash-rot');
-        }
+        if (wrapper) wrapper.classList.add(team === 'blau' ? 'flash-blau' : 'flash-rot');
 
         setTimeout(() => {
           if (origBox) {
             origBox.classList.remove('team-blau', 'team-rot');
             origBox.classList.add(team === 'blau' ? 'team-blau' : 'team-rot');
-
-            // Kamera physikalisch in die linke (Blau) oder rechte (Rot) Spalte verschieben
             const targetColumn = document.getElementById(team === 'blau' ? 'col-links' : 'col-rechts');
-            if (targetColumn && origBox.parentElement !== targetColumn) {
-              targetColumn.appendChild(origBox);
-            }
+            if (targetColumn && origBox.parentElement !== targetColumn) targetColumn.appendChild(origBox);
           }
-          if (badge) {
-            badge.innerText = team === 'blau' ? 'TEAM BLAU' : 'TEAM ROT';
-          }
+          if (badge) badge.innerText = team === 'blau' ? 'TEAM BLAU' : 'TEAM ROT';
         }, 600);
       })
-
       .on('broadcast', { event: 'switch_game' }, payload => {
         const data = payload.payload;
         const stage = document.getElementById('dynamic-game-stage');
