@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quiz-Arena | Live</title>
+  <title>Quiz Studio - Spieler Arena</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
   <style>
@@ -11,65 +11,119 @@
     body {
       font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       background: #090a0f;
-      color: #fff;
+      color: #f0f2f5;
       margin: 0;
-      padding: 20px;
+      padding: 15px;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      align-items: center;
     }
 
-    .app-container {
+    /* Studio Layout: Links Kameras | Mitte Fragen/Duell | Rechts Kameras */
+    .studio-layout {
+      display: grid;
+      grid-template-columns: 260px 1fr 260px;
+      gap: 15px;
+      max-width: 1500px;
+      margin: 0 auto;
       width: 100%;
-      max-width: 900px;
+      flex-grow: 1;
+    }
+
+    .cam-column {
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 10px;
     }
 
-    /* Top Bar: Name & Frage */
-    .top-panel {
-      background: linear-gradient(145deg, #131722, #1a1f2c);
+    .cam-box {
+      background: #131722;
       border: 1px solid #2a3447;
-      border-radius: 16px;
-      padding: 20px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+
+    .cam-title {
+      background: #1a1f2c;
+      padding: 6px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #9ca3af;
+      border-bottom: 1px solid #2a3447;
+    }
+
+    iframe {
+      width: 100%;
+      height: 130px;
+      border: none;
+      display: block;
+    }
+
+    /* Host / Admin Kamera ganz oben links oder zentriert */
+    .host-cam-box {
+      border-color: #0070f3;
+      box-shadow: 0 0 15px rgba(0, 112, 243, 0.2);
+    }
+    .host-cam-box .cam-title {
+      background: #0070f3;
+      color: white;
+    }
+
+    /* Mitte: Hauptbereich (Frage, Buzzer & dynamischer Content) */
+    .center-stage {
       display: flex;
       flex-direction: column;
       gap: 15px;
     }
 
-    .user-row {
+    .card {
+      background: #131722;
+      border: 1px solid #2a3447;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+
+    .user-config-row {
       display: flex;
-      justify-content: space-between;
       align-items: center;
       gap: 10px;
+      margin-bottom: 15px;
+      background: #1a1f2c;
+      padding: 10px 15px;
+      border-radius: 8px;
+      border: 1px solid #2a3447;
+    }
+
+    .user-config-row label {
+      font-size: 13px;
+      color: #9ca3af;
+      font-weight: 600;
     }
 
     input {
-      padding: 10px 15px;
-      font-size: 15px;
-      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 14px;
+      border-radius: 6px;
       border: 1px solid #3a475d;
-      background: #0e1219;
+      background: #090a0f;
       color: #fff;
       outline: none;
       flex-grow: 1;
     }
     input:focus { border-color: #0070f3; }
 
-    .question-box {
-      background: #0e1219;
-      border-left: 4px solid #0070f3;
-      padding: 15px;
-      border-radius: 0 8px 8px 0;
+    /* Fragen Box */
+    .question-card {
+      background: linear-gradient(145deg, #131722, #1a1f2c);
+      border-left: 5px solid #0070f3;
     }
-    .question-label { font-size: 11px; text-transform: uppercase; color: #6b7280; letter-spacing: 1px; margin-bottom: 5px; }
-    .question-text { font-size: 18px; font-weight: 600; margin: 0; color: #f3f4f6; }
+    .question-label { font-size: 11px; text-transform: uppercase; color: #9ca3af; letter-spacing: 1px; margin-bottom: 8px; }
+    .question-text { font-size: 20px; font-weight: 700; margin: 0; color: #ffffff; min-height: 50px; display: flex; align-items: center; }
 
-    /* Der Buzzer */
-    .buzzer-container {
+    /* Buzzer Bereich */
+    .buzzer-area {
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -79,108 +133,143 @@
 
     .buzzer-btn {
       width: 100%;
-      max-width: 400px;
-      height: 110px;
-      background: linear-gradient(135deg, #ff0070, #c80056);
+      height: 90px;
+      background: linear-gradient(135deg, #ff0070, #b80050);
       color: white;
-      font-size: 28px;
+      font-size: 26px;
       font-weight: 800;
       letter-spacing: 2px;
       border: none;
-      border-radius: 20px;
+      border-radius: 14px;
       cursor: pointer;
-      box-shadow: 0 10px 30px rgba(255, 0, 112, 0.4);
+      box-shadow: 0 8px 25px rgba(255, 0, 112, 0.4);
       transition: all 0.15s ease;
       text-transform: uppercase;
     }
-    .buzzer-btn:hover { transform: translateY(-2px); box-shadow: 0 15px 35px rgba(255, 0, 112, 0.6); }
-    .buzzer-btn:active { transform: scale(0.96); box-shadow: 0 5px 15px rgba(255, 0, 112, 0.3); }
+    .buzzer-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(255, 0, 112, 0.6); }
+    .buzzer-btn:active { transform: scale(0.96); box-shadow: 0 4px 10px rgba(255, 0, 112, 0.3); }
     
-    #status { margin-top: 10px; font-size: 15px; font-weight: 600; min-height: 22px; }
+    #status { margin-top: 10px; font-size: 14px; font-weight: 600; min-height: 20px; }
 
-    /* Dynamischer Videobereich */
-    .video-card {
-      background: linear-gradient(145deg, #131722, #1a1f2c);
-      border: 1px solid #2a3447;
-      border-radius: 16px;
-      padding: 20px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    /* Duell / Fokus Ansicht in der Mitte (Ersetzt die Frage/Buzzer temporär oder läuft parallel) */
+    .stage-container {
+      position: relative;
+      min-height: 280px;
+      display: flex;
+      flex-direction: column;
     }
-    .section-title { font-size: 14px; text-transform: uppercase; color: #9ca3af; margin-top: 0; margin-bottom: 15px; letter-spacing: 0.5px; }
 
-    /* Normales Grid */
-    .video-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 12px;
-    }
-    .vid-box { background: #0e1219; border: 1px solid #222b3b; border-radius: 10px; overflow: hidden; }
-    .vid-title { font-size: 11px; background: #161c29; padding: 6px 10px; color: #9ca3af; font-weight: 600; }
-    iframe { width: 100%; height: 120px; border: none; display: block; }
-
-    /* Fokus- / Duell-Ansicht (Wird aktiv, wenn Admin umschaltet) */
-    .focus-view {
-      display: none;
-      grid-template-columns: 1fr 1fr;
+    .normal-stage {
+      display: flex;
+      flex-direction: column;
       gap: 15px;
-      height: 350px;
     }
-    .focus-view.active { display: grid; }
-    .video-grid.hidden { display: none; }
-    .focus-box { background: #0e1219; border: 2px solid #0070f3; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
-    .focus-box iframe { height: 100%; flex-grow: 1; }
+    .normal-stage.hidden { display: none; }
+
+    /* Die Duell-Ansicht mit "VS" in der Mitte */
+    .duel-stage {
+      display: none;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 15px;
+      align-items: center;
+      height: 100%;
+      flex-grow: 1;
+    }
+    .duel-stage.active { display: grid; }
+
+    .duel-cam-box {
+      background: #090a0f;
+      border: 2px solid #0070f3;
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 260px;
+    }
+    .duel-cam-box iframe { height: 100%; }
+
+    .vs-badge {
+      background: linear-gradient(135deg, #ff0070, #7c3aed);
+      color: white;
+      font-weight: 900;
+      font-size: 22px;
+      padding: 15px 12px;
+      border-radius: 50%;
+      box-shadow: 0 0 20px rgba(255, 0, 112, 0.6);
+      text-align: center;
+      letter-spacing: 1px;
+    }
+
+    /* Responsives Verhalten für kleinere Bildschirme */
+    @media(max-width: 1024px) {
+      .studio-layout { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
 
-  <div class="app-container">
+  <div class="studio-layout">
     
-    <!-- Top Panel: Eingabe & Frage -->
-    <div class="top-panel">
-      <div class="user-row">
-        <span style="font-size: 14px; color: #9ca3af; font-weight: 600;">Spielername:</span>
-        <input type="text" id="spieler-name" placeholder="Dein Name..." value="Spieler 1">
+    <!-- LINKE SPALTE: Host (Spielleitung) & Spieler 1, 2, 3 -->
+    <div class="cam-column">
+      <div class="cam-box host-cam-box">
+        <div class="cam-title">🎙️ Host / Spielleitung</div>
+        <iframe src="https://vdo.ninja/?view=host_cam&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe>
       </div>
-
-      <div class="question-box">
-        <div class="question-label">Aktuelle Frage</div>
-        <h3 id="frage-text" class="question-text">Warte auf Spielbeginn...</h3>
-      </div>
-
-      <div class="buzzer-container">
-        <button class="buzzer-btn" onclick="buzzern()">🚨 BUZZERN</button>
-        <p id="status"></p>
-      </div>
+      <div class="cam-box"><div class="cam-title">Spieler 1</div><iframe src="https://vdo.ninja/?view=player_1&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+      <div class="cam-box"><div class="cam-title">Spieler 2</div><iframe src="https://vdo.ninja/?view=player_2&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+      <div class="cam-box"><div class="cam-title">Spieler 3</div><iframe src="https://vdo.ninja/?view=player_3&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
     </div>
 
-    <!-- Video Area -->
-    <div class="video-card">
-      <h3 class="section-title">📹 Live Kamera-Stream</h3>
+    <!-- MITTE: HAUPTSTUFE (Frage, Buzzer ODER Duell-Ansicht) -->
+    <div class="center-stage">
       
-      <!-- Normales 8er Grid -->
-      <div id="normal-grid" class="video-grid">
-        <div class="vid-box"><div class="vid-title">Spieler 1</div><iframe src="https://vdo.ninja/?view=player_1&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
-        <div class="vid-box"><div class="vid-title">Spieler 2</div><iframe src="https://vdo.ninja/?view=player_2&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
-        <div class="vid-box"><div class="vid-title">Spieler 3</div><iframe src="https://vdo.ninja/?view=player_3&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
-        <div class="vid-box"><div class="vid-title">Spieler 4</div><iframe src="https://vdo.ninja/?view=player_4&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
-        <div class="vid-box"><div class="vid-title">Spieler 5</div><iframe src="https://vdo.ninja/?view=player_5&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
-        <div class="vid-box"><div class="vid-title">Spieler 6</div><iframe src="https://vdo.ninja/?view=player_6&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
-        <div class="vid-box"><div class="vid-title">Spieler 7</div><iframe src="https://vdo.ninja/?view=player_7&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
-        <div class="vid-box"><div class="vid-title">Spieler 8</div><iframe src="https://vdo.ninja/?view=player_8&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+      <!-- Name Eingabe -->
+      <div class="user-config-row">
+        <label>Dein Name:</label>
+        <input type="text" id="spieler-name" placeholder="Spielername eingeben..." value="Spieler 1">
       </div>
 
-      <!-- Fokus- / Duell-Ansicht (Groß in der Mitte) -->
-      <div id="focus-view" class="focus-view">
-        <div class="focus-box">
-          <div class="vid-title" id="focus-title-1">Fokus 1</div>
-          <iframe id="focus-iframe-1" src="" allow="autoplay"></iframe>
+      <!-- Stage Container (Schaltet um zwischen Normal & Duell) -->
+      <div class="stage-container card">
+        
+        <!-- NORMALER MODUS (Frage & Buzzer) -->
+        <div id="normal-stage" class="normal-stage">
+          <div class="question-label">Aktuelle Quiz-Frage</div>
+          <div class="question-text" id="frage-text">Warte auf Spielbeginn...</div>
+          
+          <div class="buzzer-area">
+            <button class="buzzer-btn" onclick="buzzern()">🚨 BUZZERN 🚨</button>
+            <p id="status"></p>
+          </div>
         </div>
-        <div class="focus-box">
-          <div class="vid-title" id="focus-title-2">Fokus 2</div>
-          <iframe id="focus-iframe-2" src="" allow="autoplay"></iframe>
+
+        <!-- DUELL- / FOKUS-MODUS (Groß in der Mitte mit VS Badge) -->
+        <div id="duel-stage" class="duel-stage">
+          <div class="duel-cam-box">
+            <div class="cam-title" id="duel-title-1">Spieler A</div>
+            <iframe id="duel-iframe-1" src="" allow="autoplay"></iframe>
+          </div>
+          
+          <div id="vs-element" class="vs-badge">VS</div>
+
+          <div class="duel-cam-box" id="duel-box-2">
+            <div class="cam-title" id="duel-title-2">Spieler B</div>
+            <iframe id="duel-iframe-2" src="" allow="autoplay"></iframe>
+          </div>
         </div>
+
       </div>
 
+    </div>
+
+    <!-- RECHTE SPALTE: Spieler 4, 5, 6, 7, 8 -->
+    <div class="cam-column">
+      <div class="cam-box"><div class="cam-title">Spieler 4</div><iframe src="https://vdo.ninja/?view=player_4&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+      <div class="cam-box"><div class="cam-title">Spieler 5</div><iframe src="https://vdo.ninja/?view=player_5&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+      <div class="cam-box"><div class="cam-title">Spieler 6</div><iframe src="https://vdo.ninja/?view=player_6&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+      <div class="cam-box"><div class="cam-title">Spieler 7</div><iframe src="https://vdo.ninja/?view=player_7&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+      <div class="cam-box"><div class="cam-title">Spieler 8</div><iframe src="https://vdo.ninja/?view=player_8&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
     </div>
 
   </div>
@@ -188,41 +277,41 @@
   <script>
     const supabaseClient = supabase.createClient(SUPABASE_CONFIG.URL, SUPABASE_CONFIG.KEY);
 
-    // Live auf Spiel- und Layout-Änderungen lauschen
+    // Live-Lauscher für Supabase Änderungen
     supabaseClient
       .channel('game-channel')
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'game_state' }, payload => {
         const state = payload.new;
         document.getElementById('frage-text').innerText = state.aktuelle_frage;
-        
-        // Layout-Steuerung umschalten (Normal vs. Fokus/Duell)
-        const grid = document.getElementById('normal-grid');
-        const focusView = document.getElementById('focus-view');
 
+        const normalStage = document.getElementById('normal-stage');
+        const duelStage = document.getElementById('duel-stage');
+
+        // Wenn der Admin den Fokus/Duell Modus aktiviert hat
         if (state.layout_mode === 'focus') {
-          grid.classList.add('hidden');
-          focusView.classList.add('active');
+          normalStage.classList.add('hidden');
+          duelStage.classList.add('active');
 
-          // Spieler 1 Fokus laden
-          document.getElementById('focus-title-1').innerText = state.focus_player_1;
-          document.getElementById('focus-iframe-1').src = `https://vdo.ninja/?view=${state.focus_player_1}&solo=1&room=DieElmigos_Stream&password=mikestinkt`;
-          
-          // Spieler 2 (Duell) falls vorhanden
-          if (state.focus_player_2) {
-            document.getElementById('focus-title-2').innerText = state.focus_player_2;
-            document.getElementById('focus-iframe-2').src = `https://vdo.ninja/?view=${state.focus_player_2}&solo=1&room=DieElmigos_Stream&password=mikestinkt`;
-            document.getElementById('focus-iframe-2').parentElement.style.display = 'flex';
+          // Spieler 1 im Fokus laden
+          document.getElementById('duel-title-1').innerText = state.focus_player_1;
+          document.getElementById('duel-iframe-1').src = `https://vdo.ninja/?view=${state.focus_player_1}&solo=1&room=DieElmigos_Stream&password=mikestinkt`;
+
+          // Prüfen ob ein zweiter Spieler für ein Duell da ist
+          if (state.focus_player_2 && state.focus_player_2 !== '') {
+            document.getElementById('duel-title-2').innerText = state.focus_player_2;
+            document.getElementById('duel-iframe-2').src = `https://vdo.ninja/?view=${state.focus_player_2}&solo=1&room=DieElmigos_Stream&password=mikestinkt`;
+            document.getElementById('duel-box-2').style.display = 'flex';
+            document.getElementById('vs-element').style.display = 'block';
           } else {
-            document.getElementById('focus-iframe-2').parentElement.style.display = 'none';
+            // Nur Einzel-Fokus (kein Duellpartner) -> Zweite Box & VS ausblenden
+            document.getElementById('duel-box-2').style.display = 'none';
+            document.getElementById('vs-element').style.display = 'none';
           }
 
         } else {
-          grid.classList.remove('hidden');
-          focusView.classList.remove('active');
-        }
-
-        if(state.buzzer_gewinner_reset === true) {
-          document.getElementById('status').innerText = "";
+          // Zurück zum normalen Fragen- & Buzzer-Modus
+          normalStage.classList.remove('hidden');
+          duelStage.classList.remove('active');
         }
       })
       .subscribe();
