@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Quiz Admin - Regie</title>
+  <!-- Supabase JS Library -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Zentrale Konfiguration -->
+  <script src="config.js"></script>
+  <style>
+    body { font-family: sans-serif; background: #121212; color: white; margin: 0; padding: 20px; }
+    h1, h2 { text-align: center; }
+    .control-panel { background: #1e1e1e; border: 1px solid #333; padding: 20px; border-radius: 8px; max-width: 800px; margin: 0 auto 30px auto; text-align: center; }
+    button { padding: 12px 24px; font-size: 16px; margin: 5px; cursor: pointer; border-radius: 5px; border: none; background: #0070f3; color: white; font-weight: bold; }
+    button:hover { background: #0051bb; }
+    .buzzer-alert { color: #ff0070; font-weight: bold; font-size: 20px; margin-top: 15px; }
+    
+    /* Kamera Grid */
+    .video-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; max-width: 1400px; margin: 0 auto; }
+    .cam-box { background: #1e1e1e; border: 1px solid #333; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; }
+    .cam-title { background: #252525; padding: 8px 12px; font-size: 14px; font-weight: bold; border-bottom: 1px solid #333; }
+    iframe { width: 100%; height: 200px; border: none; }
+  </style>
+</head>
+<body>
+
+  <h1>🎥 Quiz Admin - Regie & Kameras</h1>
+
+  <!-- STEUERUNG & BUZZER ANZEIGE -->
+  <div class="control-panel">
+    <h2>Spielleitung</h2>
+    <button onclick="sendeFrage('Frage 1: Was ist die Hauptstadt von Australien?')">Frage 1 senden</button>
+    <button onclick="sendeFrage('Frage 2: Welches Jahr schreibt man heute?')">Frage 2 senden</button>
+    <button onclick="resetBuzzer()" style="background: #333;">Buzzer zurücksetzen</button>
+    
+    <div class="buzzer-alert">🚨 Schnellster Buzzer: <span id="buzzer-anzeige">-</span></div>
+  </div>
+
+  <!-- DAS 8ER KAMERA GRID -->
+  <div class="video-grid">
+    <div class="cam-box"><div class="cam-title">Spieler 1</div><iframe src="https://vdo.ninja/?view=player_1&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+    <div class="cam-box"><div class="cam-title">Spieler 2</div><iframe src="https://vdo.ninja/?view=player_2&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+    <div class="cam-box"><div class="cam-title">Spieler 3</div><iframe src="https://vdo.ninja/?view=player_3&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+    <div class="cam-box"><div class="cam-title">Spieler 4</div><iframe src="https://vdo.ninja/?view=player_4&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+    <div class="cam-box"><div class="cam-title">Spieler 5</div><iframe src="https://vdo.ninja/?view=player_5&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+    <div class="cam-box"><div class="cam-title">Spieler 6</div><iframe src="https://vdo.ninja/?view=player_6&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+    <div class="cam-box"><div class="cam-title">Spieler 7</div><iframe src="https://vdo.ninja/?view=player_7&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+    <div class="cam-box"><div class="cam-title">Spieler 8</div><iframe src="https://vdo.ninja/?view=player_8&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+  </div>
+
+  <script>
+    // Supabase Client über zentrale config.js initialisieren
+    const supabaseClient = supabase.createClient(SUPABASE_CONFIG.URL, SUPABASE_CONFIG.KEY);
+
+    // Realtime-Listener für Buzzer
+    supabaseClient
+      .channel('game-channel')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'game_state' }, payload => {
+        document.getElementById('buzzer-anzeige').innerText = payload.new.buzzer_gewinner;
+      })
+      .subscribe();
+
+    async function sendeFrage(text) {
+      await supabaseClient
+        .from('game_state')
+        .update({ aktuelle_frage: text, buzzer_gewinner: 'Niemand' })
+        .eq('id', 1);
+    }
+
+    async function resetBuzzer() {
+      await supabaseClient
+        .from('game_state')
+        .update({ buzzer_gewinner: 'Niemand' })
+        .eq('id', 1);
+    }
+  </script>
+</body>
+</html>
