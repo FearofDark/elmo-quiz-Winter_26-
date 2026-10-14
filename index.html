@@ -2,74 +2,106 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>Quiz Test Setup</title>
-  <!-- Supabase JS Library laden -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <title>Quiz Admin - Kamera Regie</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; background: #121212; color: white; text-align: center; }
-    .card { border: 1px solid #333; padding: 20px; border-radius: 10px; margin: 20px auto; max-width: 500px; background: #1e1e1e; }
-    button { padding: 10px 20px; font-size: 16px; margin: 5px; cursor: pointer; border-radius: 5px; border: none; background: #0070f3; color: white; }
-    iframe { border: none; border-radius: 8px; width: 100%; height: 200px; margin-top: 10px; }
+    body { 
+      font-family: sans-serif; 
+      background: #121212; 
+      color: white; 
+      margin: 0; 
+      padding: 20px; 
+    }
+    h1 { 
+      text-align: center; 
+      margin-bottom: 20px; 
+      font-size: 24px;
+    }
+    /* Das Grid für bis zu 8 Kameras (2 Reihen à 4 Spalten oder dynamisch) */
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 15px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .cam-box {
+      background: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .cam-title {
+      background: #252525;
+      padding: 8px 12px;
+      font-size: 14px;
+      font-weight: bold;
+      border-bottom: 1px solid #333;
+    }
+    iframe {
+      width: 100%;
+      height: 200px;
+      border: none;
+    }
   </style>
 </head>
 <body>
 
-  <h1>🎮 Quizabend Test</h1>
+  <h1>🎥 Quiz Admin - Kamera Regie</h1>
 
-  <!-- SPIELER BILDTSCHIRM -->
-  <div class="card">
-    <h2>Spieler Ansicht</h2>
-    <h3 id="frage-text" style="color: #ff0070;">Lade Frage...</h3>
-    <p>Buzzer Gewinner: <b id="buzzer-text">-</b></p>
-    <button onclick="buzzern()">🚨 BUZZERN!</button>
+  <!-- Das 8er Kamera Grid -->
+  <div class="video-grid">
+    
+    <!-- Spieler 1 -->
+    <div class="cam-box">
+      <div class="cam-title">Spieler 1</div>
+      <iframe src="https://vdo.ninja/?view=Spieler1_ID&autoconnect&cleanoutput" allow="autoplay"></iframe>
+    </div>
+
+    <!-- Spieler 2 -->
+    <div class="cam-box">
+      <div class="cam-title">Spieler 2</div>
+      <iframe src="https://vdo.ninja/?view=Spieler2_ID&autoconnect&cleanoutput" allow="autoplay"></iframe>
+    </div>
+
+    <!-- Spieler 3 -->
+    <div class="cam-box">
+      <div class="cam-title">Spieler 3</div>
+      <iframe src="https://vdo.ninja/?view=Spieler3_ID&autoconnect&cleanoutput" allow="autoplay"></iframe>
+    </div>
+
+    <!-- Spieler 4 -->
+    <div class="cam-box">
+      <div class="cam-title">Spieler 4</div>
+      <iframe src="https://vdo.ninja/?view=Spieler4_ID&autoconnect&cleanoutput" allow="autoplay"></iframe>
+    </div>
+
+    <!-- Spieler 5 -->
+    <div class="cam-box">
+      <div class="cam-title">Spieler 5</div>
+      <iframe src="https://vdo.ninja/?view=Spieler5_ID&autoconnect&cleanoutput" allow="autoplay"></iframe>
+    </div>
+
+    <!-- Spieler 6 -->
+    <div class="cam-box">
+      <div class="cam-title">Spieler 6</div>
+      <iframe src="https://vdo.ninja/?view=Spieler6_ID&autoconnect&cleanoutput" allow="autoplay"></iframe>
+    </div>
+
+    <!-- Spieler 7 -->
+    <div class="cam-box">
+      <div class="cam-title">Spieler 7</div>
+      <iframe src="https://vdo.ninja/?view=Spieler7_ID&autoconnect&cleanoutput" allow="autoplay"></iframe>
+    </div>
+
+    <!-- Spieler 8 -->
+    <div class="cam-box">
+      <div class="cam-title">Spieler 8</div>
+      <iframe src="https://vdo.ninja/?view=Spieler8_ID&autoconnect&cleanoutput" allow="autoplay"></iframe>
+    </div>
+
   </div>
 
-  <!-- ADMIN STEUERUNG -->
-  <div class="card" style="border-color: #0070f3;">
-    <h2>Admin Regie</h2>
-    <button onclick="sendeFrage('Frage 1: Was ist 2 + 2?')">Frage 1 senden</button>
-    <button onclick="sendeFrage('Frage 2: Welcher Planet ist der rote Planet?')">Frage 2 senden</button>
-  </div>
-
-  <!-- VDO.NINJA KAMERA TEST -->
-  <div class="card">
-    <h2>Kamera (VDO.Ninja Test)</h2>
-    <!-- Test-Raum im VDO.Ninja iFrame -->
-    <iframe src="https://vdo.ninja/?room=QuizTestAbend123&push&cleanoutput" allow="camera;microphone"></iframe>
-  </div>
-
-  <script>
-    // 1. Supabase Verbinden (FÜGE HIER DEINE DATEN EIN!)
-    const SUPABASE_URL = "https://lhxdrrfedircqivjyfly.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_Hi-6bE380582OONTSx82YQ_qyGytIG4";
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    // 2. Realtime Listener: Auf Updates in Supabase hören
-    supabaseClient
-      .channel('schema-db-changes')
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'game_state' }, payload => {
-        // Sobald der Admin etwas ändert, wird das hier SOFORT auf allen Bildschirmen ausgeführt:
-        document.getElementById('frage-text').innerText = payload.new.aktuelle_frage;
-        document.getElementById('buzzer-text').innerText = payload.new.buzzer_gewinner;
-      })
-      .subscribe();
-
-    // 3. Admin Aktionen (Daten in Supabase ändern)
-    async function sendeFrage(text) {
-      await supabaseClient
-        .from('game_state')
-        .update({ aktuelle_frage: text, buzzer_gewinner: 'Niemand' })
-        .eq('id', 1);
-    }
-
-    // 4. Spieler Aktion (Buzzer drücken)
-    async function buzzern() {
-      const spielerName = "Spieler " + Math.floor(Math.random() * 100);
-      await supabaseClient
-        .from('game_state')
-        .update({ buzzer_gewinner: spielerName })
-        .eq('id', 1);
-    }
-  </script>
 </body>
 </html>
