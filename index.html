@@ -74,28 +74,19 @@
       })
       .subscribe();
 
-    async function buzzern() {
-      const name = document.getElementById('spieler-name').value || "Anonym";
-      
-      const { data } = await supabaseClient
-        .from('game_state')
-        .select('buzzer_gewinner')
-        .eq('id', 1)
-        .single();
+      // In der index.html - Funktion buzzern()
+async function buzzern() {
+  const name = document.getElementById('spieler-name').value || "Anonym";
+  
+  // Trägt den Zeitstempel direkt in die Buzzer-Tabelle ein
+  await supabaseClient
+    .from('buzzer_log')
+    .insert([{ spieler_name: name }]);
 
-      if (data && data.buzzer_gewinner === 'Niemand') {
-        await supabaseClient
-          .from('game_state')
-          .update({ buzzer_gewinner: name })
-          .eq('id', 1);
-        
-        document.getElementById('status').innerText = "Du hast gebuzzert!";
-        document.getElementById('status').style.color = "#00ff7f";
-      } else {
-        document.getElementById('status').innerText = "Zu langsam! " + data.buzzer_gewinner + " war schneller.";
-        document.getElementById('status').style.color = "#ff0070";
-      }
-    }
+  document.getElementById('status').innerText = "Gebuzzert!";
+  document.getElementById('status').style.color = "#00ff7f";
+}
+
   </script>
 </body>
 </html>
