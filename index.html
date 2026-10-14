@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quiz Studio - Spieler Arena</title>
+  <title>Quiz Studio - Team Arena</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
   <style>
@@ -19,222 +19,208 @@
       flex-direction: column;
     }
 
-    /* Studio Layout: Links Kameras | Mitte Fragen/Duell | Rechts Kameras */
     .studio-layout {
       display: grid;
-      grid-template-columns: 260px 1fr 260px;
-      gap: 15px;
-      max-width: 1500px;
+      grid-template-columns: 320px 1fr 320px;
+      gap: 20px;
+      max-width: 1800px;
       margin: 0 auto;
       width: 100%;
       flex-grow: 1;
     }
 
-    .cam-column {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+    .cam-column { display: flex; flex-direction: column; gap: 15px; }
+
+    /* TEAM CONTAINER HEADER (NEUES TEAM DESIGN) */
+    .team-header-card {
+      padding: 12px;
+      border-radius: 12px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
     }
 
+    .team-column-blau .team-header-card {
+      background: linear-gradient(135deg, #0070f3, #003380);
+      border: 2px solid #0070f3;
+      color: white;
+      box-shadow: 0 0 20px rgba(0, 112, 243, 0.4);
+    }
+
+    .team-column-rot .team-header-card {
+      background: linear-gradient(135deg, #ff3b30, #80100a);
+      border: 2px solid #ff3b30;
+      color: white;
+      box-shadow: 0 0 20px rgba(255, 59, 48, 0.4);
+    }
+
+    /* NEUTRALER KAMERA ZUSTAND (VOR DER AUSLOSUNG) */
     .cam-box {
       background: #131722;
-      border: 1px solid #2a3447;
+      border: 2px solid #4b5563;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+      position: relative;
+      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .cam-title {
+      background: #1f2937;
+      color: #d1d5db;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background 0.5s ease;
+    }
+
+    /* NACH DER AUSLOSUNG SIND BLAU UND ROT PERFEKT SORTIERT */
+    .cam-box.team-blau {
+      border-color: #0070f3 !important;
+      box-shadow: 0 0 20px rgba(0, 112, 243, 0.4) !important;
+    }
+    .cam-box.team-blau .cam-title {
+      background: linear-gradient(90deg, #0070f3, #004499) !important;
+      color: white !important;
+    }
+
+    .cam-box.team-rot {
+      border-color: #ff3b30 !important;
+      box-shadow: 0 0 20px rgba(255, 59, 48, 0.4) !important;
+    }
+    .cam-box.team-rot .cam-title {
+      background: linear-gradient(90deg, #ff3b30, #b31a12) !important;
+      color: white !important;
+    }
+
+    .cam-box.in-focus-stage {
+      opacity: 0.25;
+      transform: scale(0.95);
+    }
+
+    iframe { width: 100%; height: 185px; border: none; display: block; }
+    .disabled-slot { display: none !important; }
+
+    .center-stage { display: flex; flex-direction: column; gap: 15px; flex-grow: 1; }
+
+    /* HOST WIDGET OBEN */
+    .host-header-widget {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      background: #131722;
+      border: 3px solid #ffffff;
+      border-radius: 14px;
+      padding: 10px 20px;
+      box-shadow: 0 0 25px rgba(255, 255, 255, 0.25);
+      position: relative;
+    }
+    .host-cam-mini {
+      width: 220px;
+      height: 125px;
       border-radius: 8px;
       overflow: hidden;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      border: 2px solid #fff;
+      flex-shrink: 0;
     }
-
-    .cam-title {
-      background: #1a1f2c;
-      padding: 6px 10px;
-      font-size: 11px;
-      font-weight: 600;
-      color: #9ca3af;
-      border-bottom: 1px solid #2a3447;
-    }
-
-    iframe {
-      width: 100%;
-      height: 130px;
-      border: none;
-      display: block;
-    }
-
-    /* Host / Admin Kamera ganz oben links oder zentriert */
-    .host-cam-box {
-      border-color: #0070f3;
-      box-shadow: 0 0 15px rgba(0, 112, 243, 0.2);
-    }
-    .host-cam-box .cam-title {
-      background: #0070f3;
-      color: white;
-    }
-
-    /* Mitte: Hauptbereich (Frage, Buzzer & dynamischer Content) */
-    .center-stage {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-
-    .card {
-      background: #131722;
-      border: 1px solid #2a3447;
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-    }
-
-    .user-config-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 15px;
-      background: #1a1f2c;
-      padding: 10px 15px;
-      border-radius: 8px;
-      border: 1px solid #2a3447;
-    }
-
-    .user-config-row label {
-      font-size: 13px;
-      color: #9ca3af;
-      font-weight: 600;
-    }
-
-    input {
-      padding: 8px 12px;
-      font-size: 14px;
-      border-radius: 6px;
-      border: 1px solid #3a475d;
-      background: #090a0f;
-      color: #fff;
-      outline: none;
+    .host-cam-mini iframe { height: 125px; width: 220px; }
+    
+    .studio-banner {
       flex-grow: 1;
+      text-align: center;
+      font-size: 32px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      background: linear-gradient(135deg, #ff0070, #0070f3);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-transform: uppercase;
     }
-    input:focus { border-color: #0070f3; }
 
-    /* Fragen Box */
-    .question-card {
-      background: linear-gradient(145deg, #131722, #1a1f2c);
-      border-left: 5px solid #0070f3;
-    }
+    .card { background: #131722; border: 1px solid #2a3447; border-radius: 12px; padding: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); display: flex; flex-direction: column; flex-grow: 1; }
     .question-label { font-size: 11px; text-transform: uppercase; color: #9ca3af; letter-spacing: 1px; margin-bottom: 8px; }
-    .question-text { font-size: 20px; font-weight: 700; margin: 0; color: #ffffff; min-height: 50px; display: flex; align-items: center; }
+    .question-text { font-size: 22px; font-weight: 700; margin: 0 0 20px 0; color: #ffffff; min-height: 50px; display: flex; align-items: center; }
 
-    /* Buzzer Bereich */
-    .buzzer-area {
+    .buzzer-area { display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: auto; padding: 15px 0; }
+    .buzzer-btn {
+      width: 100%; max-width: 480px; height: 110px; background: linear-gradient(135deg, #ff0070, #b80050); color: white; font-size: 28px; font-weight: 800;
+      border: none; border-radius: 16px; cursor: pointer; box-shadow: 0 10px 30px rgba(255, 0, 112, 0.4); text-transform: uppercase; transition: all 0.15s ease;
+    }
+    .buzzer-btn:hover { transform: translateY(-2px); box-shadow: 0 15px 35px rgba(255, 0, 112, 0.6); }
+    .buzzer-btn:active { transform: scale(0.96); }
+    #status { margin-top: 15px; font-size: 16px; font-weight: 600; min-height: 22px; }
+
+    .stage-container { position: relative; display: flex; flex-direction: column; flex-grow: 1; min-height: 380px; overflow: hidden; }
+    .team-badge { font-size: 10px; padding: 2px 8px; border-radius: 4px; background: rgba(0, 0, 0, 0.3); }
+
+    /* GROSSE BÜHNEN-KAMERA IN DER MITTE */
+    .fokus-stage-box {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 10px 0;
-    }
-
-    .buzzer-btn {
-      width: 100%;
-      height: 90px;
-      background: linear-gradient(135deg, #ff0070, #b80050);
-      color: white;
-      font-size: 26px;
-      font-weight: 800;
-      letter-spacing: 2px;
-      border: none;
-      border-radius: 14px;
-      cursor: pointer;
-      box-shadow: 0 8px 25px rgba(255, 0, 112, 0.4);
-      transition: all 0.15s ease;
-      text-transform: uppercase;
-    }
-    .buzzer-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(255, 0, 112, 0.6); }
-    .buzzer-btn:active { transform: scale(0.96); box-shadow: 0 4px 10px rgba(255, 0, 112, 0.3); }
-    
-    #status { margin-top: 10px; font-size: 14px; font-weight: 600; min-height: 20px; }
-
-    /* Duell / Fokus Ansicht in der Mitte (Ersetzt die Frage/Buzzer temporär oder läuft parallel) */
-    .stage-container {
-      position: relative;
-      min-height: 280px;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .normal-stage {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-    .normal-stage.hidden { display: none; }
-
-    /* Die Duell-Ansicht mit "VS" in der Mitte */
-    .duel-stage {
-      display: none;
-      grid-template-columns: 1fr auto 1fr;
-      gap: 15px;
-      align-items: center;
       height: 100%;
-      flex-grow: 1;
+      padding: 10px;
+      animation: flyCenter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
-    .duel-stage.active { display: grid; }
-
-    .duel-cam-box {
-      background: #090a0f;
-      border: 2px solid #0070f3;
-      border-radius: 10px;
+    @keyframes flyCenter {
+      0% { transform: scale(0.6); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .fokus-cam-wrapper {
+      width: 100%;
+      max-width: 620px;
+      height: 350px;
+      border-radius: 16px;
       overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      height: 260px;
+      border: 4px solid #4b5563;
+      box-shadow: 0 0 40px rgba(0,0,0,0.85);
+      transition: all 0.5s ease;
     }
-    .duel-cam-box iframe { height: 100%; }
-
-    .vs-badge {
-      background: linear-gradient(135deg, #ff0070, #7c3aed);
-      color: white;
-      font-weight: 900;
-      font-size: 22px;
-      padding: 15px 12px;
-      border-radius: 50%;
-      box-shadow: 0 0 20px rgba(255, 0, 112, 0.6);
-      text-align: center;
-      letter-spacing: 1px;
+    .fokus-cam-wrapper.flash-blau {
+      border-color: #0070f3 !important;
+      box-shadow: 0 0 60px rgba(0, 112, 243, 0.95) !important;
     }
-
-    /* Responsives Verhalten für kleinere Bildschirme */
-    @media(max-width: 1024px) {
-      .studio-layout { grid-template-columns: 1fr; }
+    .fokus-cam-wrapper.flash-rot {
+      border-color: #ff3b30 !important;
+      box-shadow: 0 0 60px rgba(255, 59, 48, 0.95) !important;
     }
+    .fokus-cam-wrapper iframe { width: 100%; height: 100%; }
   </style>
 </head>
 <body>
 
   <div class="studio-layout">
     
-    <!-- LINKE SPALTE: Host (Spielleitung) & Spieler 1, 2, 3 -->
-    <div class="cam-column">
-      <div class="cam-box host-cam-box">
-        <div class="cam-title">🎙️ Host / Spielleitung</div>
-        <iframe src="https://vdo.ninja/?view=host_cam&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe>
-      </div>
-      <div class="cam-box"><div class="cam-title">Spieler 1</div><iframe src="https://vdo.ninja/?view=player_1&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
-      <div class="cam-box"><div class="cam-title">Spieler 2</div><iframe src="https://vdo.ninja/?view=player_2&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
-      <div class="cam-box"><div class="cam-title">Spieler 3</div><iframe src="https://vdo.ninja/?view=player_3&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+    <!-- LINKS: SPALTE TEAM BLAU -->
+    <div class="cam-column team-column-blau" id="col-links">
+      <div class="team-header-card" id="header-team-blau">🔵 TEAM BLAU</div>
+      <!-- Hier werden dynamisch alle Blau-Mitglieder einsortiert -->
+      <div class="cam-box" id="box-player_1"><div class="cam-title"><span id="title-player_1">Spieler 1</span> <span class="team-badge" id="badge-player_1">NEUTRAL</span></div><iframe src="https://vdo.ninja/?view=player_1&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+      <div class="cam-box" id="box-player_3"><div class="cam-title"><span id="title-player_3">Spieler 3</span> <span class="team-badge" id="badge-player_3">NEUTRAL</span></div><iframe src="https://vdo.ninja/?view=player_3&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+      <div class="cam-box" id="box-player_5"><div class="cam-title"><span id="title-player_5">Spieler 5</span> <span class="team-badge" id="badge-player_5">NEUTRAL</span></div><iframe src="https://vdo.ninja/?view=player_5&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+      <div class="cam-box" id="box-player_7"><div class="cam-title"><span id="title-player_7">Spieler 7</span> <span class="team-badge" id="badge-player_7">NEUTRAL</span></div><iframe src="https://vdo.ninja/?view=player_7&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
     </div>
 
-    <!-- MITTE: HAUPTSTUFE (Frage, Buzzer ODER Duell-Ansicht) -->
+    <!-- MITTE: HOST WIDGET OBEN + QUIZ STAGE -->
     <div class="center-stage">
       
-      <!-- Name Eingabe -->
-      <div class="user-config-row">
-        <label>Dein Name:</label>
-        <input type="text" id="spieler-name" placeholder="Spielername eingeben..." value="Spieler 1">
+      <!-- HOST WIDGET OBEN -->
+      <div class="host-header-widget">
+        <div class="host-cam-mini">
+          <iframe src="https://vdo.ninja/?view=host_cam&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe>
+        </div>
+        <div class="studio-banner">ELMO-QUIZ</div>
       </div>
 
-      <!-- Stage Container (Schaltet um zwischen Normal & Duell) -->
-      <div class="stage-container card">
-        
-        <!-- NORMALER MODUS (Frage & Buzzer) -->
-        <div id="normal-stage" class="normal-stage">
+      <!-- DYNAMISCHE BÜHNE -->
+      <div id="dynamic-game-stage" class="stage-container card">
+        <div id="modul-normal" style="display: flex; flex-direction: column; height: 100%;">
           <div class="question-label">Aktuelle Quiz-Frage</div>
           <div class="question-text" id="frage-text">Warte auf Spielbeginn...</div>
           
@@ -243,87 +229,227 @@
             <p id="status"></p>
           </div>
         </div>
-
-        <!-- DUELL- / FOKUS-MODUS (Groß in der Mitte mit VS Badge) -->
-        <div id="duel-stage" class="duel-stage">
-          <div class="duel-cam-box">
-            <div class="cam-title" id="duel-title-1">Spieler A</div>
-            <iframe id="duel-iframe-1" src="" allow="autoplay"></iframe>
-          </div>
-          
-          <div id="vs-element" class="vs-badge">VS</div>
-
-          <div class="duel-cam-box" id="duel-box-2">
-            <div class="cam-title" id="duel-title-2">Spieler B</div>
-            <iframe id="duel-iframe-2" src="" allow="autoplay"></iframe>
-          </div>
-        </div>
-
       </div>
 
     </div>
 
-    <!-- RECHTE SPALTE: Spieler 4, 5, 6, 7, 8 -->
-    <div class="cam-column">
-      <div class="cam-box"><div class="cam-title">Spieler 4</div><iframe src="https://vdo.ninja/?view=player_4&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
-      <div class="cam-box"><div class="cam-title">Spieler 5</div><iframe src="https://vdo.ninja/?view=player_5&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
-      <div class="cam-box"><div class="cam-title">Spieler 6</div><iframe src="https://vdo.ninja/?view=player_6&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
-      <div class="cam-box"><div class="cam-title">Spieler 7</div><iframe src="https://vdo.ninja/?view=player_7&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
-      <div class="cam-box"><div class="cam-title">Spieler 8</div><iframe src="https://vdo.ninja/?view=player_8&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+    <!-- RECHTS: SPALTE TEAM ROT -->
+    <div class="cam-column team-column-rot" id="col-rechts">
+      <div class="team-header-card" id="header-team-rot">🔴 TEAM ROT</div>
+      <!-- Hier werden dynamisch alle Rot-Mitglieder einsortiert -->
+      <div class="cam-box" id="box-player_2"><div class="cam-title"><span id="title-player_2">Spieler 2</span> <span class="team-badge" id="badge-player_2">NEUTRAL</span></div><iframe src="https://vdo.ninja/?view=player_2&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+      <div class="cam-box" id="box-player_4"><div class="cam-title"><span id="title-player_4">Spieler 4</span> <span class="team-badge" id="badge-player_4">NEUTRAL</span></div><iframe src="https://vdo.ninja/?view=player_4&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+      <div class="cam-box" id="box-player_6"><div class="cam-title"><span id="title-player_6">Spieler 6</span> <span class="team-badge" id="badge-player_6">NEUTRAL</span></div><iframe src="https://vdo.ninja/?view=player_6&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+      <div class="cam-box" id="box-player_8"><div class="cam-title"><span id="title-player_8">Spieler 8</span> <span class="team-badge" id="badge-player_8">NEUTRAL</span></div><iframe src="https://vdo.ninja/?view=player_8&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
     </div>
 
   </div>
 
   <script>
     const supabaseClient = supabase.createClient(SUPABASE_CONFIG.URL, SUPABASE_CONFIG.KEY);
+    const MY_SLOT = "player_1";
 
-    // Live-Lauscher für Supabase Änderungen
-    supabaseClient
-      .channel('game-channel')
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'game_state' }, payload => {
-        const state = payload.new;
-        document.getElementById('frage-text').innerText = state.aktuelle_frage;
+    let teamAssignments = {};
 
-        const normalStage = document.getElementById('normal-stage');
-        const duelStage = document.getElementById('duel-stage');
+    async function ladeNamen() {
+      const { data } = await supabaseClient.from('player_slots').select('*');
+      if (data) {
+        data.forEach(row => {
+          const titleEl = document.getElementById(`title-${row.slot_id}`);
+          if (titleEl) titleEl.innerText = row.spieler_name;
+        });
+      }
+    }
 
-        // Wenn der Admin den Fokus/Duell Modus aktiviert hat
-        if (state.layout_mode === 'focus') {
-          normalStage.classList.add('hidden');
-          duelStage.classList.add('active');
+    const channel = supabaseClient.channel('game-channel', { config: { broadcast: { self: true } } });
 
-          // Spieler 1 im Fokus laden
-          document.getElementById('duel-title-1').innerText = state.focus_player_1;
-          document.getElementById('duel-iframe-1').src = `https://vdo.ninja/?view=${state.focus_player_1}&solo=1&room=DieElmigos_Stream&password=mikestinkt`;
+    channel
+      // DYNAMISCHE TEAM-NAMEN EMPFANGEN
+      .on('broadcast', { event: 'update_team_names' }, payload => {
+        const { nameBlau, nameRot } = payload.payload;
+        if(nameBlau) document.getElementById('header-team-blau').innerText = `🔵 ${nameBlau.toUpperCase()}`;
+        if(nameRot) document.getElementById('header-team-rot').innerText = `🔴 ${nameRot.toUpperCase()}`;
+      })
 
-          // Prüfen ob ein zweiter Spieler für ein Duell da ist
-          if (state.focus_player_2 && state.focus_player_2 !== '') {
-            document.getElementById('duel-title-2').innerText = state.focus_player_2;
-            document.getElementById('duel-iframe-2').src = `https://vdo.ninja/?view=${state.focus_player_2}&solo=1&room=DieElmigos_Stream&password=mikestinkt`;
-            document.getElementById('duel-box-2').style.display = 'flex';
-            document.getElementById('vs-element').style.display = 'block';
-          } else {
-            // Nur Einzel-Fokus (kein Duellpartner) -> Zweite Box & VS ausblenden
-            document.getElementById('duel-box-2').style.display = 'none';
-            document.getElementById('vs-element').style.display = 'none';
-          }
-
-        } else {
-          // Zurück zum normalen Fragen- & Buzzer-Modus
-          normalStage.classList.remove('hidden');
-          duelStage.classList.remove('active');
+      .on('broadcast', { event: 'update_teams' }, payload => {
+        const { activeCount } = payload.payload;
+        for (let i = 1; i <= 8; i++) {
+          const boxEl = document.getElementById(`box-player_${i}`);
+          if (boxEl) boxEl.classList.toggle('disabled-slot', i > activeCount);
         }
+      })
+
+      // KAMERA IN DIE MITTE HOLEN
+      .on('broadcast', { event: 'focus_player' }, payload => {
+        const { slotId } = payload.payload;
+        const stage = document.getElementById('dynamic-game-stage');
+
+        for (let i = 1; i <= 8; i++) {
+          const b = document.getElementById(`box-player_${i}`);
+          if (b) b.classList.remove('in-focus-stage');
+        }
+
+        if (slotId) {
+          const origBox = document.getElementById(`box-${slotId}`);
+          if (origBox) origBox.classList.add('in-focus-stage');
+
+          const pName = document.getElementById(`title-${slotId}`) ? document.getElementById(`title-${slotId}`).innerText : slotId;
+
+          stage.innerHTML = `
+            <div class="fokus-stage-box">
+              <h2 style="color: #0070f3; margin: 0 0 10px 0; font-size: 22px; text-transform: uppercase;" id="fokus-name-title">🎥 FOKUS: ${pName}</h2>
+              <div class="fokus-cam-wrapper" id="fokus-wrapper">
+                <iframe src="https://vdo.ninja/?view=${slotId}&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe>
+              </div>
+            </div>
+          `;
+        } else {
+          stage.innerHTML = `
+            <div id="modul-normal" style="display: flex; flex-direction: column; height: 100%;">
+              <div class="question-label">Aktuelle Quiz-Frage</div>
+              <div class="question-text" id="frage-text">Warte auf Spielbeginn...</div>
+              <div class="buzzer-area">
+                <button class="buzzer-btn" onclick="buzzern()">🚨 BUZZERN 🚨</button>
+                <p id="status"></p>
+              </div>
+            </div>
+          `;
+        }
+      })
+
+      // AUSLOSUNG / TEAM ZUWEISEN + SORTIEREN IN DIE KORREKTE SPALTE
+      .on('broadcast', { event: 'assign_team_animated' }, payload => {
+        const { slotId, team } = payload.payload;
+        const wrapper = document.getElementById('fokus-wrapper');
+        const origBox = document.getElementById(`box-${slotId}`);
+        const badge = document.getElementById(`badge-${slotId}`);
+
+        if (wrapper) {
+          wrapper.classList.add(team === 'blau' ? 'flash-blau' : 'flash-rot');
+        }
+
+        setTimeout(() => {
+          if (origBox) {
+            origBox.classList.remove('team-blau', 'team-rot');
+            origBox.classList.add(team === 'blau' ? 'team-blau' : 'team-rot');
+
+            // Kamera physikalisch in die linke (Blau) oder rechte (Rot) Spalte verschieben
+            const targetColumn = document.getElementById(team === 'blau' ? 'col-links' : 'col-rechts');
+            if (targetColumn && origBox.parentElement !== targetColumn) {
+              targetColumn.appendChild(origBox);
+            }
+          }
+          if (badge) {
+            badge.innerText = team === 'blau' ? 'TEAM BLAU' : 'TEAM ROT';
+          }
+        }, 600);
+      })
+
+      .on('broadcast', { event: 'switch_game' }, payload => {
+        const data = payload.payload;
+        const stage = document.getElementById('dynamic-game-stage');
+
+        if (data.game === 'drawing') {
+          const isPainter = (MY_SLOT === data.painter);
+          stage.innerHTML = `
+            <div style="display: flex; flex-direction: column; height: 100%; justify-content: space-between; padding: 10px;">
+              <div style="display: flex; justify-content: space-between; background: #1a1f2c; padding: 8px 12px; border-radius: 6px;">
+                <span style="font-weight: bold; color: #0070f3;" id="draw-status">Team-Zeichenduell</span>
+                <span id="word-display" style="color: #00ff7f; font-weight: bold; display: none;">Wort: ${data.word}</span>
+              </div>
+              <div style="display: flex; justify-content: center; align-items: center; flex-grow: 1;">
+                <canvas id="live-canvas" width="550" height="320" style="background: white; border-radius: 6px; cursor: crosshair;"></canvas>
+              </div>
+              <div id="draw-tools" style="display: none; justify-content: center; gap: 10px; background: #1a1f2c; padding: 6px; border-radius: 6px;">
+                <input type="color" id="p-color" value="#000000" style="width: 30px; height: 30px; border:none; background:none; cursor:pointer;">
+                <button onclick="clearCanvas()" style="background: #dc2626; color: white; border:none; padding: 4px 10px; border-radius: 4px; cursor:pointer;">Löschen</button>
+              </div>
+            </div>
+          `;
+
+          const canvasEl = document.getElementById('live-canvas');
+          const ctxEl = canvasEl.getContext('2d');
+          let drawing = false;
+
+          if (isPainter) {
+            document.getElementById('draw-status').innerText = "🎨 DU MALST!";
+            document.getElementById('word-display').style.display = 'block';
+            document.getElementById('draw-tools').style.display = 'flex';
+
+            canvasEl.addEventListener('mousedown', e => {
+              drawing = true;
+              const rect = canvasEl.getBoundingClientRect();
+              const x = e.clientX - rect.left, y = e.clientY - rect.top;
+              drawDot(ctxEl, x, y, document.getElementById('p-color').value, 6);
+              channel.send({ type: 'broadcast', event: 'draw_stroke', payload: { x, y, color: document.getElementById('p-color').value } });
+            });
+            canvasEl.addEventListener('mousemove', e => {
+              if (!drawing) return;
+              const rect = canvasEl.getBoundingClientRect();
+              const x = e.clientX - rect.left, y = e.clientY - rect.top;
+              drawDot(ctxEl, x, y, document.getElementById('p-color').value, 6);
+              channel.send({ type: 'broadcast', event: 'draw_stroke', payload: { x, y, color: document.getElementById('p-color').value } });
+            });
+            window.addEventListener('mouseup', () => drawing = false);
+          } else {
+            document.getElementById('draw-status').innerText = "🕵️ DU RÄTST!";
+          }
+        } else {
+          stage.innerHTML = `
+            <div id="modul-normal" style="display: flex; flex-direction: column; height: 100%;">
+              <div class="question-label">Aktuelle Quiz-Frage</div>
+              <div class="question-text" id="frage-text">Warte auf Spielbeginn...</div>
+              <div class="buzzer-area">
+                <button class="buzzer-btn" onclick="buzzern()">🚨 BUZZERN 🚨</button>
+                <p id="status"></p>
+              </div>
+            </div>
+          `;
+        }
+      })
+      .on('broadcast', { event: 'draw_stroke' }, payload => {
+        const canvasEl = document.getElementById('live-canvas');
+        if (canvasEl) drawDot(canvasEl.getContext('2d'), payload.payload.x, payload.payload.y, payload.payload.color, 6);
+      })
+      .on('broadcast', { event: 'clear_canvas' }, () => {
+        const canvasEl = document.getElementById('live-canvas');
+        if (canvasEl) canvasEl.getContext('2d').clearRect(0, 0, canvasEl.width, canvasEl.height);
+      })
+      .subscribe();
+
+    function drawDot(context, x, y, color, size) {
+      context.fillStyle = color;
+      context.beginPath();
+      context.arc(x, y, size, 0, Math.PI * 2);
+      context.fill();
+    }
+
+    async function clearCanvas() {
+      const canvasEl = document.getElementById('live-canvas');
+      canvasEl.getContext('2d').clearRect(0, 0, canvasEl.width, canvasEl.height);
+      await channel.send({ type: 'broadcast', event: 'clear_canvas', payload: {} });
+    }
+
+    supabaseClient.channel('db-channel')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'player_slots' }, () => ladeNamen())
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'game_state' }, payload => {
+        const fText = document.getElementById('frage-text');
+        if (fText) fText.innerText = payload.new.aktuelle_frage;
       })
       .subscribe();
 
     async function buzzern() {
-      const name = document.getElementById('spieler-name').value || "Anonym";
+      const { data } = await supabaseClient.from('player_slots').select('spieler_name').eq('slot_id', MY_SLOT).single();
+      const name = data ? data.spieler_name : MY_SLOT;
       await supabaseClient.from('buzzer_log').insert([{ spieler_name: name }]);
-
       const statusEl = document.getElementById('status');
-      statusEl.innerText = "🚀 ERFOLGREICH GEBUZZERT!";
-      statusEl.style.color = "#00ff7f";
+      if (statusEl) {
+        statusEl.innerText = "🚀 ERFOLGREICH GEBUZZERT!";
+        statusEl.style.color = "#00ff7f";
+      }
     }
+
+    window.addEventListener('DOMContentLoaded', ladeNamen);
   </script>
 </body>
 </html>

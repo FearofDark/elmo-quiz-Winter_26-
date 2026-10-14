@@ -13,278 +13,345 @@
       color: #f0f2f5;
       margin: 0;
       padding: 15px;
-      height: 100vh;
-      overflow: hidden;
+      min-height: 100vh;
     }
 
-    .studio-layout {
-      display: grid;
-      grid-template-columns: 280px 1fr 280px;
-      gap: 15px;
-      height: calc(100vh - 30px);
-    }
-
-    .cam-column {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      overflow-y: auto;
-    }
-
-    .cam-box {
-      background: #131722;
-      border: 1px solid #2a3447;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-      position: relative;
-    }
-
-    .cam-header {
-      background: #1a1f2c;
-      padding: 6px 10px;
-      font-size: 11px;
-      font-weight: 600;
-      color: #9ca3af;
+    .admin-header {
+      text-align: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
       border-bottom: 1px solid #2a3447;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    }
+    .admin-header h1 {
+      margin: 0;
+      font-size: 22px;
+      background: linear-gradient(135deg, #0070f3, #ff0070);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-transform: uppercase;
+      letter-spacing: 2px;
     }
 
-    .focus-trigger-btn {
-      background: #0070f3;
-      color: white;
-      border: none;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 10px;
-      cursor: pointer;
+    /* 3-SPALTEN LAYOUT */
+    .admin-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 15px;
+      max-width: 1700px;
+      margin: 0 auto;
     }
-    .focus-trigger-btn:hover { background: #005bb5; }
 
-    iframe { width: 100%; height: 140px; border: none; display: block; }
-
-    /* Zentrum */
-    .center-console {
+    .column {
       display: flex;
       flex-direction: column;
       gap: 15px;
-      overflow-y: auto;
     }
 
     .card {
       background: #131722;
       border: 1px solid #2a3447;
       border-radius: 12px;
-      padding: 18px;
+      padding: 15px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.4);
     }
 
     h2 {
       margin-top: 0;
-      font-size: 16px;
+      font-size: 15px;
       color: #0070f3;
       border-bottom: 1px solid #2a3447;
-      padding-bottom: 8px;
-      letter-spacing: 0.5px;
+      padding-bottom: 6px;
+      margin-bottom: 10px;
     }
 
-    .btn-group { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+    label {
+      display: block;
+      font-size: 11px;
+      color: #9ca3af;
+      margin-top: 6px;
+      margin-bottom: 3px;
+      font-weight: 600;
+    }
 
-    button {
-      padding: 10px 16px;
-      font-size: 13px;
+    button, select, input {
+      padding: 8px 10px;
+      font-size: 12px;
       font-weight: 600;
       border-radius: 6px;
-      border: none;
+      border: 1px solid #3a475d;
+      background: #090a0f;
+      color: white;
+      outline: none;
       cursor: pointer;
       transition: all 0.2s ease;
-      background: #0070f3;
-      color: white;
     }
-    button:hover { background: #005bb5; transform: translateY(-1px); }
-    .reset-btn { background: #dc2626; }
-    .reset-btn:hover { background: #b91c1c; }
-    .layout-btn { background: #7c3aed; }
-    .layout-btn:hover { background: #6d28d9; }
 
-    /* Layout Status Anzeiger */
-    .layout-status {
-      background: #1a1f2c;
-      padding: 10px;
+    button { background: #0070f3; border: none; }
+    button:hover { background: #005bb5; }
+
+    .btn-purple { background: #7c3aed; }
+    .btn-purple:hover { background: #6d28d9; }
+    .btn-red { background: #dc2626; }
+    .btn-red:hover { background: #b91c1c; }
+
+    .btn-group { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+
+    /* Namenseingabe Grid */
+    .name-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .name-row {
+      display: flex; align-items: center; gap: 4px; background: #1a1f2c; padding: 4px 8px; border-radius: 6px; border: 1px solid #2a3447;
+    }
+    .name-row label { margin: 0; width: 25px; color: #9ca3af; font-size: 10px; }
+    .name-row input { flex-grow: 1; padding: 4px; font-size: 11px; }
+
+    /* Text-Log für Buzzer (Ticker-artig) */
+    .buzzer-log-box {
+      background: #090a0f;
+      border: 1px solid #2a3447;
       border-radius: 6px;
+      padding: 8px;
+      height: 180px;
+      overflow-y: auto;
+      font-family: monospace;
       font-size: 12px;
-      color: #9ca3af;
-      margin-bottom: 10px;
-      border: 1px dashed #3a475d;
-    }
-
-    /* Buzzer Liste */
-    .buzzer-list { list-style: none; padding: 0; margin: 0; max-height: 200px; overflow-y: auto; }
-    .buzzer-item {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #1a1f2c;
-      padding: 8px 12px;
-      border-radius: 6px;
-      margin-bottom: 6px;
-      border-left: 4px solid #4b5563;
-      font-size: 13px;
+      flex-direction: column;
+      gap: 6px;
     }
-    .buzzer-item.rank-1 { border-left-color: #ff0070; background: #26111f; font-weight: bold; }
-    .time-badge { font-size: 11px; color: #9ca3af; font-family: monospace; }
+    .buzzer-log-item {
+      background: #1a1f2c;
+      padding: 6px 8px;
+      border-radius: 4px;
+      border-left: 3px solid #0070f3;
+    }
+    .buzzer-log-item.rank-1 {
+      border-left-color: #ff0070;
+      background: #26111f;
+    }
   </style>
 </head>
 <body>
 
-  <div class="studio-layout">
-    
-    <!-- LINKS: Spieler 1 - 4 -->
-    <div class="cam-column">
-      <div class="cam-box"><div class="cam-header">Spieler 1 <button class="focus-trigger-btn" onclick="setFocus('player_1')">Fokus</button></div><iframe src="https://vdo.ninja/?view=player_1&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
-      <div class="cam-box"><div class="cam-header">Spieler 2 <button class="focus-trigger-btn" onclick="setFocus('player_2')">Fokus</button></div><iframe src="https://vdo.ninja/?view=player_2&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
-      <div class="cam-box"><div class="cam-header">Spieler 3 <button class="focus-trigger-btn" onclick="setFocus('player_3')">Fokus</button></div><iframe src="https://vdo.ninja/?view=player_3&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
-      <div class="cam-box"><div class="cam-header">Spieler 4 <button class="focus-trigger-btn" onclick="setFocus('player_4')">Fokus</button></div><iframe src="https://vdo.ninja/?view=player_4&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
-    </div>
+  <div class="admin-header">
+    <h1>🎛️ Quiz Studio Regiezentrale</h1>
+  </div>
 
-    <!-- MITTE: KONTROLLE & BUZZER -->
-    <div class="center-console">
+  <div class="admin-grid">
+
+    <!-- SPALTE 1: SPIEL-MODI & QUIZ-STEUERUNG -->
+    <div class="column">
       
-      <div class="card">
-        <h2>🎛️ Quiz-Steuerung</h2>
-        <div class="btn-group">
-          <button onclick="sendeFrage('Frage 1: Was ist die Hauptstadt von Australien?')">Frage 1 senden</button>
-          <button onclick="sendeFrage('Frage 2: Welches Element hat das Symbol Au?')">Frage 2 senden</button>
-        </div>
-        <div class="btn-group" style="margin-top: 10px;">
-          <button onclick="resetLayout()" class="layout-btn">🔲 Zurück zum 8er-Grid</button>
-          <button onclick="resetBuzzer()" class="reset-btn">🔄 Buzzer Reset</button>
-        </div>
-      </div>
+      <!-- Spiel-Modus Umschalter -->
+      <div class="card" style="border-color: #7c3aed;">
+        <h2 style="color: #7c3aed;">🎮 Spiel-Modus Umschalter</h2>
+        <label>Aktiver Modus auf der Hauptbühne:</label>
+        <select id="game-mode-select" onchange="spielModusWechseln()" style="width: 100%;">
+          <option value="lottery">🎰 Live Team-Auslosung (Start-Phase)</option>
+          <option value="normal" selected>❓ Standard Quiz-Frage & Buzzer</option>
+          <option value="drawing">🎨 Team-Zeichenduell (Montagsmaler)</option>
+        </select>
 
-      <div class="card">
-        <h2>⚔️ Layout & Duell Modus</h2>
-        <div class="layout-status" id="current-layout-info">Aktiver Modus: Standard (8er-Grid)</div>
-        <div style="font-size: 11px; color: #9ca3af; margin-bottom: 8px;">Für ein Duell: Klicke bei Spieler A auf "Fokus" und wähle danach Spieler B als zweiten Duellpartner:</div>
-        <div class="btn-group">
-          <select id="duell-select-2" style="padding: 8px; background: #0e1219; color: #fff; border: 1px solid #3a475d; border-radius: 6px; flex-grow: 1;">
-            <option value="player_2">Spieler 2 als Duellpartner</option>
-            <option value="player_3">Spieler 3</option>
-            <option value="player_4">Spieler 4</option>
-            <option value="player_5">Spieler 5</option>
-            <option value="player_6">Spieler 6</option>
-            <option value="player_7">Spieler 7</option>
-            <option value="player_8">Spieler 8</option>
+        <!-- Zeichenduell Optionen -->
+        <div id="drawing-settings" style="display: none; margin-top: 10px; background: #1a1f2c; padding: 10px; border-radius: 6px; border: 1px solid #2a3447;">
+          <label>Wer ist Maler?</label>
+          <select id="draw-role-p1" style="width: 100%;">
+            <option value="player_1">Spieler 1</option><option value="player_2">Spieler 2</option><option value="player_3">Spieler 3</option><option value="player_4">Spieler 4</option>
+            <option value="player_5">Spieler 5</option><option value="player_6">Spieler 6</option><option value="player_7">Spieler 7</option><option value="player_8">Spieler 8</option>
           </select>
-          <button onclick="startDuell()" style="background: #059669;">Duell starten</button>
+          <label>Geheimes Wort:</label>
+          <input type="text" id="draw-secret-word" value="Feuerwehr" style="width: 100%;">
+          <button onclick="updateDrawingConfig()" style="background: #059669; width: 100%; margin-top: 8px;">Zeichen-Runde Starten</button>
         </div>
       </div>
 
-      <div class="card">
-        <h2>🚨 Buzzer Rangliste</h2>
-        <ul id="buzzer-liste" class="buzzer-list">
-          <li style="color: #6b7280; text-align: center; padding: 10px;">Warte auf Buzzer...</li>
-        </ul>
+      <!-- Quiz-Fragen Steuerung (erscheint nur im Normal-Modus) -->
+      <div class="card" id="normal-quiz-controls">
+        <h2>🎛️ Quiz-Fragen Steuerung</h2>
+        <div class="btn-group" style="margin-bottom: 8px;">
+          <button onclick="sendeFrage('Frage 1: Was ist die Hauptstadt von Australien?')">Frage 1</button>
+          <button onclick="sendeFrage('Frage 2: Welches Element hat das Symbol Au?')">Frage 2</button>
+          <button onclick="sendeFrage('Frage 3: Wie viele Kontinente gibt es?')">Frage 3</button>
+        </div>
+        <button onclick="resetBuzzer()" class="btn-red" style="width: 100%;">🔄 Buzzer Zurücksetzen</button>
       </div>
 
     </div>
 
-    <!-- RECHTS: Spieler 5 - 8 -->
-    <div class="cam-column">
-      <div class="cam-box"><div class="cam-header">Spieler 5 <button class="focus-trigger-btn" onclick="setFocus('player_5')">Fokus</button></div><iframe src="https://vdo.ninja/?view=player_5&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
-      <div class="cam-box"><div class="cam-header">Spieler 6 <button class="focus-trigger-btn" onclick="setFocus('player_6')">Fokus</button></div><iframe src="https://vdo.ninja/?view=player_6&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
-      <div class="cam-box"><div class="cam-header">Spieler 7 <button class="focus-trigger-btn" onclick="setFocus('player_7')">Fokus</button></div><iframe src="https://vdo.ninja/?view=player_7&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
-      <div class="cam-box"><div class="cam-header">Spieler 8 <button class="focus-trigger-btn" onclick="setFocus('player_8')">Fokus</button></div><iframe src="https://vdo.ninja/?view=player_8&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+    <!-- SPALTE 2: KAMERA-FOKUS & TEAM-ZUWEISUNG -->
+    <div class="column">
+      
+      <div class="card" style="border-color: #0070f3;">
+        <h2>🎥 Kamera-Fokus & Zuweisung</h2>
+        
+        <label>Spieler-Kamera auswählen:</label>
+        <select id="focused-player-select" style="width: 100%; margin-bottom: 8px;">
+          <option value="player_1">Spieler 1</option><option value="player_2">Spieler 2</option><option value="player_3">Spieler 3</option><option value="player_4">Spieler 4</option>
+          <option value="player_5">Spieler 5</option><option value="player_6">Spieler 6</option><option value="player_7">Spieler 7</option><option value="player_8">Spieler 8</option>
+        </select>
+
+        <div style="display: flex; gap: 6px; margin-bottom: 12px;">
+          <button onclick="fokussiereAusgewaehlten()" class="btn-purple" style="flex: 1;">🎥 In die Mitte holen</button>
+          <button onclick="fokusZuruecksetzen()" style="background: #4b5563;">✖ Aus</button>
+        </div>
+
+        <label style="border-top: 1px solid #2a3447; padding-top: 8px;">Team zuweisen (Animiert):</label>
+        <div style="display: flex; gap: 6px;">
+          <button onclick="auslosenZielTeam('blau')" style="background: #0070f3; flex: 1;">🔵 Zu Team Blau</button>
+          <button onclick="auslosenZielTeam('rot')" style="background: #ff3b30; flex: 1;">🔴 Zu Team Rot</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- SPALTE 3: EINSTELLUNGEN, NAMEN & LIVE TEXT-LOG -->
+    <div class="column">
+      
+      <!-- Team-Namen & Spieleranzahl -->
+      <div class="card">
+        <h2>👥 Team & Spieler</h2>
+        <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+          <div style="flex: 1;"><label style="color: #0070f3;">Name Blau:</label><input type="text" id="team-blau-name-in" value="Team Blau" onchange="updateTeamNames()" style="width: 100%; border-color: #0070f3;"></div>
+          <div style="flex: 1;"><label style="color: #ff3b30;">Name Rot:</label><input type="text" id="team-rot-name-in" value="Team Rot" onchange="updateTeamNames()" style="width: 100%; border-color: #ff3b30;"></div>
+        </div>
+
+        <label>Aktive Spieleranzahl:</label>
+        <select id="active-player-count" onchange="speichereTeams()" style="width: 100%; margin-bottom: 10px;">
+          <option value="4">4 Spieler (2 vs 2)</option>
+          <option value="6" selected>6 Spieler (3 vs 3)</option>
+          <option value="8">8 Spieler (4 vs 4)</option>
+        </select>
+
+        <label>Spielernamen:</label>
+        <div class="name-grid">
+          <div class="name-row"><label>P1:</label><input type="text" id="in-player_1" onchange="updateName('player_1')"></div>
+          <div class="name-row"><label>P2:</label><input type="text" id="in-player_2" onchange="updateName('player_2')"></div>
+          <div class="name-row"><label>P3:</label><input type="text" id="in-player_3" onchange="updateName('player_3')"></div>
+          <div class="name-row"><label>P4:</label><input type="text" id="in-player_4" onchange="updateName('player_4')"></div>
+          <div class="name-row"><label>P5:</label><input type="text" id="in-player_5" onchange="updateName('player_5')"></div>
+          <div class="name-row"><label>P6:</label><input type="text" id="in-player_6" onchange="updateName('player_6')"></div>
+          <div class="name-row"><label>P7:</label><input type="text" id="in-player_7" onchange="updateName('player_7')"></div>
+          <div class="name-row"><label>P8:</label><input type="text" id="in-player_8" onchange="updateName('player_8')"></div>
+        </div>
+      </div>
+
+      <!-- Live Buzzer / Text Log -->
+      <div class="card">
+        <h2>🚨 Live Buzzer / Text Log</h2>
+        <div id="buzzer-log-container" class="buzzer-log-box">
+          <div style="color: #6b7280; text-align: center; margin: auto;">Warte auf Eingaben...</div>
+        </div>
+      </div>
+
     </div>
 
   </div>
 
   <script>
     const supabaseClient = supabase.createClient(SUPABASE_CONFIG.URL, SUPABASE_CONFIG.KEY);
-    let selectedFocusPlayer1 = 'player_1';
+    const channel = supabaseClient.channel('game-channel', { config: { broadcast: { self: true } } });
+    channel.subscribe();
 
-    // Buzzer Listener
-    supabaseClient
-      .channel('buzzer-tracker')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'buzzer_log' }, () => {
-        ladeBuzzerReihenfolge();
-      })
-      .subscribe();
+    let aktuellerFokusSlot = null;
 
-    async function ladeBuzzerReihenfolge() {
-      const { data } = await supabaseClient
-        .from('buzzer_log')
-        .select('*')
-        .order('created_at', { ascending: true });
+    async function updateTeamNames() {
+      const blau = document.getElementById('team-blau-name-in').value || 'Team Blau';
+      const rot = document.getElementById('team-rot-name-in').value || 'Team Rot';
+      await channel.send({ type: 'broadcast', event: 'update_team_names', payload: { nameBlau: blau, nameRot: rot } });
+    }
 
-      const liste = document.getElementById('buzzer-liste');
-      if (!data || data.length === 0) {
-        liste.innerHTML = '<li style="color: #6b7280; text-align: center; padding: 10px;">Warte auf Buzzer...</li>';
-        return;
+    async function fokussiereSpieler(slotId) {
+      aktuellerFokusSlot = slotId;
+      document.getElementById('focused-player-select').value = slotId;
+      await channel.send({ type: 'broadcast', event: 'focus_player', payload: { slotId: slotId } });
+    }
+
+    function fokussiereAusgewaehlten() {
+      fokussiereSpieler(document.getElementById('focused-player-select').value);
+    }
+
+    async function fokusZuruecksetzen() {
+      aktuellerFokusSlot = null;
+      await channel.send({ type: 'broadcast', event: 'focus_player', payload: { slotId: null } });
+    }
+
+    async function auslosenZielTeam(teamColor) {
+      const slot = aktuellerFokusSlot || document.getElementById('focused-player-select').value;
+      await channel.send({ type: 'broadcast', event: 'assign_team_animated', payload: { slotId: slot, team: teamColor } });
+    }
+
+    async function ladeNamen() {
+      const { data } = await supabaseClient.from('player_slots').select('*');
+      if (data) {
+        data.forEach(row => {
+          const input = document.getElementById(`in-${row.slot_id}`);
+          if (input && document.activeElement !== input) input.value = row.spieler_name;
+
+          // Dropdown Namen in Echtzeit aktualisieren
+          const selectOpt = document.querySelector(`#focused-player-select option[value="${row.slot_id}"]`);
+          if (selectOpt) selectOpt.innerText = `${row.slot_id} (${row.spieler_name})`;
+        });
       }
+    }
 
-      const ersterZeitstempel = new Date(data[0].created_at).getTime();
+    async function updateName(slotId) {
+      const val = document.getElementById(`in-${slotId}`).value;
+      await supabaseClient.from('player_slots').update({ spieler_name: val }).eq('slot_id', slotId);
+    }
 
-      liste.innerHTML = data.map((item, index) => {
-        const zeit = new Date(item.created_at);
-        const diffMs = new Date(item.created_at).getTime() - ersterZeitstempel;
-        const zeitText = index === 0 
-          ? zeit.toLocaleTimeString() + "." + zeit.getMilliseconds().toString().padStart(3, '0')
-          : `+${diffMs} ms`;
+    async function speichereTeams() {
+      const activeCount = parseInt(document.getElementById('active-player-count').value);
+      await channel.send({ type: 'broadcast', event: 'update_teams', payload: { activeCount } });
+    }
 
-        return `
-          <li class="buzzer-item ${index === 0 ? 'rank-1' : ''}">
-            <span><b>#${index + 1}</b> ${item.spieler_name}</span>
-            <span class="time-badge">${zeitText}</span>
-          </li>
-        `;
-      }).join('');
+    async function spielModusWechseln() {
+      const mode = document.getElementById('game-mode-select').value;
+      document.getElementById('drawing-settings').style.display = (mode === 'drawing') ? 'block' : 'none';
+      
+      // Quiz-Fragen Steuerung nur im "normal"-Modus anzeigen
+      document.getElementById('normal-quiz-controls').style.display = (mode === 'normal') ? 'block' : 'none';
+
+      await channel.send({ type: 'broadcast', event: 'switch_game', payload: { game: mode } });
+    }
+
+    async function updateDrawingConfig() {
+      const painter = document.getElementById('draw-role-p1').value;
+      const word = document.getElementById('draw-secret-word').value;
+      await channel.send({ type: 'broadcast', event: 'switch_game', payload: { game: 'drawing', painter, word } });
     }
 
     async function sendeFrage(text) {
       await resetBuzzer();
-      await supabaseClient
-        .from('game_state')
-        .update({ aktuelle_frage: text })
-        .eq('id', 1);
-    }
-
-    async function setFocus(playerId) {
-      selectedFocusPlayer1 = playerId;
-      await supabaseClient
-        .from('game_state')
-        .update({ layout_mode: 'focus', focus_player_1: playerId, focus_player_2: '' })
-        .eq('id', 1);
-      document.getElementById('current-layout-info').innerText = `Aktiver Modus: Einzel-Fokus (${playerId})`;
-    }
-
-    async function startDuell() {
-      const player2 = document.getElementById('duell-select-2').value;
-      if(selectedFocusPlayer1 === player2) {
-        alert("Bitte wähle zwei unterschiedliche Spieler für das Duell!");
-        return;
-      }
-      await supabaseClient
-        .from('game_state')
-        .update({ layout_mode: 'focus', focus_player_1: selectedFocusPlayer1, focus_player_2: player2 })
-        .eq('id', 1);
-      document.getElementById('current-layout-info').innerText = `Aktiver Modus: Duell (${selectedFocusPlayer1} vs ${player2})`;
-    }
-
-    async function resetLayout() {
-      await supabaseClient
-        .from('game_state')
-        .update({ layout_mode: 'normal', focus_player_1: '', focus_player_2: '' })
-        .eq('id', 1);
-      document.getElementById('current-layout-info').innerText = "Aktiver Modus: Standard (8er-Grid)";
+      await supabaseClient.from('game_state').update({ aktuelle_frage: text }).eq('id', 1);
     }
 
     async function resetBuzzer() {
-      await supabaseClient.from('buzzer_logسمبرdelete_all' || 'buzzer_log').delete().gte('created_at', '2000-01-01T00:00:00Z');
-      document.getElementById('buzzer-liste').innerHTML = '<li style="color: #6b7280; text-align: center; padding: 10px;">Warte auf Buzzer...</li>';
+      await supabaseClient.from('buzzer_log').delete().gte('created_at', '2000-01-01T00:00:00Z');
+      document.getElementById('buzzer-log-container').innerHTML = '<div style="color: #6b7280; text-align: center; margin: auto;">Warte auf Eingaben...</div>';
     }
+
+    supabaseClient.channel('admin-channel')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'player_slots' }, () => ladeNamen())
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'buzzer_log' }, () => ladeBuzzerLog())
+      .subscribe();
+
+    async function ladeBuzzerLog() {
+      const { data } = await supabaseClient.from('buzzer_log').select('*').order('created_at', { ascending: true });
+      const container = document.getElementById('buzzer-log-container');
+      if (!data || data.length === 0) {
+        container.innerHTML = '<div style="color: #6b7280; text-align: center; margin: auto;">Warte auf Eingaben...</div>';
+        return;
+      }
+      container.innerHTML = data.map((item, idx) => {
+        const timeStr = new Date(item.created_at).toLocaleTimeString();
+        return `<div class="buzzer-log-item ${idx === 0 ? 'rank-1' : ''}">
+                  <div><b>${item.spieler_name}</b></div>
+                  <div style="font-size: 10px; color: #9ca3af; margin-top: 2px;">${timeStr}</div>
+                </div>`;
+      }).join('');
+      container.scrollTop = container.scrollHeight;
+    }
+
+    window.addEventListener('DOMContentLoaded', () => { ladeNamen(); speichereTeams(); updateTeamNames(); spielModusWechseln(); });
   </script>
 </body>
 </html>
