@@ -2,14 +2,14 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>Quiz Studio - Admin Regie</title>
+  <title>Quiz Studio - Regiezentrale</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
   <style>
     * { box-sizing: border-box; }
     body {
       font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      background: #0d0f12;
+      background: #090a0f;
       color: #f0f2f5;
       margin: 0;
       padding: 15px;
@@ -17,7 +17,6 @@
       overflow: hidden;
     }
 
-    /* Das Haupt-Layout: Kameras Links | Mitte Kontrollen | Kameras Rechts */
     .studio-layout {
       display: grid;
       grid-template-columns: 280px 1fr 280px;
@@ -33,30 +32,40 @@
     }
 
     .cam-box {
-      background: #181b20;
-      border: 1px solid #2a2f38;
+      background: #131722;
+      border: 1px solid #2a3447;
       border-radius: 8px;
       overflow: hidden;
       box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      position: relative;
     }
 
-    .cam-title {
-      background: #222730;
+    .cam-header {
+      background: #1a1f2c;
       padding: 6px 10px;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
-      color: #a0aec0;
-      border-bottom: 1px solid #2a2f38;
+      color: #9ca3af;
+      border-bottom: 1px solid #2a3447;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
-    iframe {
-      width: 100%;
-      height: 155px;
+    .focus-trigger-btn {
+      background: #0070f3;
+      color: white;
       border: none;
-      display: block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      cursor: pointer;
     }
+    .focus-trigger-btn:hover { background: #005bb5; }
 
-    /* Haupt-Mittelkonsole */
+    iframe { width: 100%; height: 140px; border: none; display: block; }
+
+    /* Zentrum */
     .center-console {
       display: flex;
       flex-direction: column;
@@ -65,30 +74,27 @@
     }
 
     .card {
-      background: #181b20;
-      border: 1px solid #2a2f38;
+      background: #131722;
+      border: 1px solid #2a3447;
       border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
     }
 
     h2 {
       margin-top: 0;
-      font-size: 18px;
+      font-size: 16px;
       color: #0070f3;
-      border-bottom: 1px solid #2a2f38;
-      padding-bottom: 10px;
+      border-bottom: 1px solid #2a3447;
+      padding-bottom: 8px;
+      letter-spacing: 0.5px;
     }
 
-    .btn-group {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
+    .btn-group { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
 
     button {
-      padding: 12px 18px;
-      font-size: 14px;
+      padding: 10px 16px;
+      font-size: 13px;
       font-weight: 600;
       border-radius: 6px;
       border: none;
@@ -97,89 +103,109 @@
       background: #0070f3;
       color: white;
     }
-
     button:hover { background: #005bb5; transform: translateY(-1px); }
-    .reset-btn { background: #e53e3e; }
-    .reset-btn:hover { background: #c53030; }
+    .reset-btn { background: #dc2626; }
+    .reset-btn:hover { background: #b91c1c; }
+    .layout-btn { background: #7c3aed; }
+    .layout-btn:hover { background: #6d28d9; }
 
-    /* Buzzer-Reihenfolge Tabelle */
-    .buzzer-list {
-      list-style: none;
-      padding: 0;
-      margin: 10px 0 0 0;
+    /* Layout Status Anzeiger */
+    .layout-status {
+      background: #1a1f2c;
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      color: #9ca3af;
+      margin-bottom: 10px;
+      border: 1px dashed #3a475d;
     }
 
+    /* Buzzer Liste */
+    .buzzer-list { list-style: none; padding: 0; margin: 0; max-height: 200px; overflow-y: auto; }
     .buzzer-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: #222730;
-      padding: 10px 15px;
+      background: #1a1f2c;
+      padding: 8px 12px;
       border-radius: 6px;
-      margin-bottom: 8px;
-      border-left: 4px solid #4a5568;
+      margin-bottom: 6px;
+      border-left: 4px solid #4b5563;
+      font-size: 13px;
     }
-
-    .buzzer-item.rank-1 {
-      border-left-color: #ff0070;
-      background: #2d1823;
-      font-weight: bold;
-    }
-
-    .time-badge {
-      font-size: 12px;
-      color: #a0aec0;
-      font-family: monospace;
-    }
+    .buzzer-item.rank-1 { border-left-color: #ff0070; background: #26111f; font-weight: bold; }
+    .time-badge { font-size: 11px; color: #9ca3af; font-family: monospace; }
   </style>
 </head>
 <body>
 
   <div class="studio-layout">
     
-    <!-- LINKESEITE: Spieler 1 - 4 -->
+    <!-- LINKS: Spieler 1 - 4 -->
     <div class="cam-column">
-      <div class="cam-box"><div class="cam-title">Spieler 1</div><iframe src="https://vdo.ninja/?view=player_1&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
-      <div class="cam-box"><div class="cam-title">Spieler 2</div><iframe src="https://vdo.ninja/?view=player_2&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
-      <div class="cam-box"><div class="cam-title">Spieler 3</div><iframe src="https://vdo.ninja/?view=player_3&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
-      <div class="cam-box"><div class="cam-title">Spieler 4</div><iframe src="https://vdo.ninja/?view=player_4&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+      <div class="cam-box"><div class="cam-header">Spieler 1 <button class="focus-trigger-btn" onclick="setFocus('player_1')">Fokus</button></div><iframe src="https://vdo.ninja/?view=player_1&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+      <div class="cam-box"><div class="cam-header">Spieler 2 <button class="focus-trigger-btn" onclick="setFocus('player_2')">Fokus</button></div><iframe src="https://vdo.ninja/?view=player_2&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+      <div class="cam-box"><div class="cam-header">Spieler 3 <button class="focus-trigger-btn" onclick="setFocus('player_3')">Fokus</button></div><iframe src="https://vdo.ninja/?view=player_3&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+      <div class="cam-box"><div class="cam-header">Spieler 4 <button class="focus-trigger-btn" onclick="setFocus('player_4')">Fokus</button></div><iframe src="https://vdo.ninja/?view=player_4&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
     </div>
 
-    <!-- MITTE: REGIE & FRAGEN ZENTRALE -->
+    <!-- MITTE: KONTROLLE & BUZZER -->
     <div class="center-console">
       
       <div class="card">
         <h2>🎛️ Quiz-Steuerung</h2>
         <div class="btn-group">
-          <button onclick="sendeFrage('Frage 1: Was ist die Hauptstadt von Australien?')">Frage 1</button>
-          <button onclick="sendeFrage('Frage 2: Welches Element hat das Symbol Au?')">Frage 2</button>
+          <button onclick="sendeFrage('Frage 1: Was ist die Hauptstadt von Australien?')">Frage 1 senden</button>
+          <button onclick="sendeFrage('Frage 2: Welches Element hat das Symbol Au?')">Frage 2 senden</button>
+        </div>
+        <div class="btn-group" style="margin-top: 10px;">
+          <button onclick="resetLayout()" class="layout-btn">🔲 Zurück zum 8er-Grid</button>
           <button onclick="resetBuzzer()" class="reset-btn">🔄 Buzzer Reset</button>
         </div>
       </div>
 
       <div class="card">
-        <h2>🚨 Buzzer Reihenfolge (Echtzeit)</h2>
+        <h2>⚔️ Layout & Duell Modus</h2>
+        <div class="layout-status" id="current-layout-info">Aktiver Modus: Standard (8er-Grid)</div>
+        <div style="font-size: 11px; color: #9ca3af; margin-bottom: 8px;">Für ein Duell: Klicke bei Spieler A auf "Fokus" und wähle danach Spieler B als zweiten Duellpartner:</div>
+        <div class="btn-group">
+          <select id="duell-select-2" style="padding: 8px; background: #0e1219; color: #fff; border: 1px solid #3a475d; border-radius: 6px; flex-grow: 1;">
+            <option value="player_2">Spieler 2 als Duellpartner</option>
+            <option value="player_3">Spieler 3</option>
+            <option value="player_4">Spieler 4</option>
+            <option value="player_5">Spieler 5</option>
+            <option value="player_6">Spieler 6</option>
+            <option value="player_7">Spieler 7</option>
+            <option value="player_8">Spieler 8</option>
+          </select>
+          <button onclick="startDuell()" style="background: #059669;">Duell starten</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>🚨 Buzzer Rangliste</h2>
         <ul id="buzzer-liste" class="buzzer-list">
-          <li style="color: #718096; text-align: center;">Noch niemand gebuzzert...</li>
+          <li style="color: #6b7280; text-align: center; padding: 10px;">Warte auf Buzzer...</li>
         </ul>
       </div>
 
     </div>
 
-    <!-- RECHTE SEITE: Spieler 5 - 8 -->
+    <!-- RECHTS: Spieler 5 - 8 -->
     <div class="cam-column">
-      <div class="cam-box"><div class="cam-title">Spieler 5</div><iframe src="https://vdo.ninja/?view=player_5&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
-      <div class="cam-box"><div class="cam-title">Spieler 6</div><iframe src="https://vdo.ninja/?view=player_6&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
-      <div class="cam-box"><div class="cam-title">Spieler 7</div><iframe src="https://vdo.ninja/?view=player_7&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
-      <div class="cam-box"><div class="cam-title">Spieler 8</div><iframe src="https://vdo.ninja/?view=player_8&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+      <div class="cam-box"><div class="cam-header">Spieler 5 <button class="focus-trigger-btn" onclick="setFocus('player_5')">Fokus</button></div><iframe src="https://vdo.ninja/?view=player_5&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+      <div class="cam-box"><div class="cam-header">Spieler 6 <button class="focus-trigger-btn" onclick="setFocus('player_6')">Fokus</button></div><iframe src="https://vdo.ninja/?view=player_6&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+      <div class="cam-box"><div class="cam-header">Spieler 7 <button class="focus-trigger-btn" onclick="setFocus('player_7')">Fokus</button></div><iframe src="https://vdo.ninja/?view=player_7&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+      <div class="cam-box"><div class="cam-header">Spieler 8 <button class="focus-trigger-btn" onclick="setFocus('player_8')">Fokus</button></div><iframe src="https://vdo.ninja/?view=player_8&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
     </div>
 
   </div>
 
   <script>
     const supabaseClient = supabase.createClient(SUPABASE_CONFIG.URL, SUPABASE_CONFIG.KEY);
+    let selectedFocusPlayer1 = 'player_1';
 
-    // Auf Live-Buzzer-Events hören
+    // Buzzer Listener
     supabaseClient
       .channel('buzzer-tracker')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'buzzer_log' }, () => {
@@ -195,7 +221,7 @@
 
       const liste = document.getElementById('buzzer-liste');
       if (!data || data.length === 0) {
-        liste.innerHTML = '<li style="color: #718096; text-align: center;">Noch niemand gebuzzert...</li>';
+        liste.innerHTML = '<li style="color: #6b7280; text-align: center; padding: 10px;">Warte auf Buzzer...</li>';
         return;
       }
 
@@ -225,9 +251,39 @@
         .eq('id', 1);
     }
 
+    async function setFocus(playerId) {
+      selectedFocusPlayer1 = playerId;
+      await supabaseClient
+        .from('game_state')
+        .update({ layout_mode: 'focus', focus_player_1: playerId, focus_player_2: '' })
+        .eq('id', 1);
+      document.getElementById('current-layout-info').innerText = `Aktiver Modus: Einzel-Fokus (${playerId})`;
+    }
+
+    async function startDuell() {
+      const player2 = document.getElementById('duell-select-2').value;
+      if(selectedFocusPlayer1 === player2) {
+        alert("Bitte wähle zwei unterschiedliche Spieler für das Duell!");
+        return;
+      }
+      await supabaseClient
+        .from('game_state')
+        .update({ layout_mode: 'focus', focus_player_1: selectedFocusPlayer1, focus_player_2: player2 })
+        .eq('id', 1);
+      document.getElementById('current-layout-info').innerText = `Aktiver Modus: Duell (${selectedFocusPlayer1} vs ${player2})`;
+    }
+
+    async function resetLayout() {
+      await supabaseClient
+        .from('game_state')
+        .update({ layout_mode: 'normal', focus_player_1: '', focus_player_2: '' })
+        .eq('id', 1);
+      document.getElementById('current-layout-info').innerText = "Aktiver Modus: Standard (8er-Grid)";
+    }
+
     async function resetBuzzer() {
-      await supabaseClient.from('buzzer_log').delete().gte('id', '00000000-0000-0000-0000-000000000000');
-      document.getElementById('buzzer-liste').innerHTML = '<li style="color: #718096; text-align: center;">Noch niemand gebuzzert...</li>';
+      await supabaseClient.from('buzzer_logسمبرdelete_all' || 'buzzer_log').delete().gte('created_at', '2000-01-01T00:00:00Z');
+      document.getElementById('buzzer-liste').innerHTML = '<li style="color: #6b7280; text-align: center; padding: 10px;">Warte auf Buzzer...</li>';
     }
   </script>
 </body>
