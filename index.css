@@ -1,0 +1,338 @@
+/* Grunddesign & Setup für Full-HD (1920x1080) */
+body {
+  background: #030305;
+  color: #f4f4f5;
+  font-family: system-ui, -apple-system, sans-serif;
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.studio-layout {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  gap: 16px;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+#team-chat-sidebar.open {
+  transform: translateX(0) !important;
+}
+
+/* Äußere Kamera-Spalten (Links & Rechts) */
+.cam-column {
+  flex: 1.4; 
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 360px;
+}
+
+/* Zentrale Hauptbühne */
+.center-stage {
+  flex: 2; 
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+/* Moderne, umrandete Team-Header-Karten */
+.team-header-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #09090b;
+  border-radius: 10px;
+  padding: 10px 14px;
+  box-sizing: border-box;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  font-weight: bold;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  border: 2px solid #27272a; /* Standard-Rahmen */
+  transition: all 0.3s ease;
+}
+
+/* Spezifische Rahmen & dezente Hintergründe für alle 4 Teams */
+.team-header-blau {
+  border-color: #0070f3 !important;
+  background: linear-gradient(135deg, #09090b 0%, rgba(0, 112, 243, 0.15) 100%);
+  box-shadow: 0 0 12px rgba(0, 112, 243, 0.2);
+}
+
+.team-header-rot {
+  border-color: #dc2626 !important;
+  background: linear-gradient(135deg, #09090b 0%, rgba(220, 38, 38, 0.15) 100%);
+  box-shadow: 0 0 12px rgba(220, 38, 38, 0.2);
+}
+
+.team-header-gruen {
+  border-color: #22c55e !important;
+  background: linear-gradient(135deg, #09090b 0%, rgba(34, 197, 94, 0.15) 100%);
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.2);
+}
+
+.team-header-gelb {
+  border-color: #eab308 !important;
+  background: linear-gradient(135deg, #09090b 0%, rgba(234, 179, 8, 0.15) 100%);
+  box-shadow: 0 0 12px rgba(234, 179, 8, 0.2);
+}
+
+/* Schick integrierte Punkte-Badges */
+.team-score-badge {
+  background: rgba(0, 0, 0, 0.6);
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+/* Team Drop-Zonen in den Spalten links und rechts */
+.team-drop-zone {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-grow: 1;
+  background: rgba(18, 18, 22, 0.4);
+  border: 1px dashed #27272a;
+  border-radius: 10px;
+  padding: 8px;
+  box-sizing: border-box;
+  min-height: 180px;
+}
+
+/* Große, präsente Kamera-Boxen an den Seiten */
+.cam-box {
+  background: #121216;
+  border: 2px solid #27272a;
+  border-radius: 10px;
+  flex: 1;
+  min-height: 150px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+}
+
+.cam-box iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.cam-title {
+  background: rgba(9, 9, 11, 0.85);
+  backdrop-filter: blur(4px);
+  padding: 4px 8px;
+  font-size: 11px;
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  z-index: 10;
+  border-radius: 6px;
+  color: #e4e4e7;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.disabled-slot {
+  display: none !important;
+}
+
+/* Host Widget (oben in der Mitte) */
+.host-header-widget {
+  background: #09090b;
+  border: 1px solid #27272a;
+  border-radius: 12px;
+  box-sizing: border-box;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.host-cam-mini {
+  width: 150px;
+  height: 85px;
+  background: #121216;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #27272a;
+}
+
+.host-cam-mini iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* ELMO-QUIZ Banner */
+.studio-banner-main {
+  font-weight: 900;
+  font-size: 28px;
+  letter-spacing: 5px;
+  background: linear-gradient(135deg, #f43f5e 0%, #fb7185 50%, #ffffff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 10px rgba(244, 63, 94, 0.4));
+}
+
+.pulse-badge {
+  font-size: 11px;
+  font-weight: bold;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.1);
+  padding: 2px 10px;
+  border-radius: 20px;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  animation: pulseBadge 2s infinite;
+}
+
+@keyframes pulseBadge {
+  0% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.03); opacity: 1; box-shadow: 0 0 10px rgba(56,189,248,0.4); }
+  100% { transform: scale(1); opacity: 0.9; }
+}
+
+/* Hauptbühnen-Container */
+.stage-container {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  background: #09090b;
+  border: 1px solid #27272a;
+  border-radius: 14px;
+}
+
+.lottery-stage-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  padding: 20px;
+}
+
+.lottery-live-badge {
+  color: #ef4444;
+  font-weight: bold;
+  margin-bottom: 8px;
+  font-size: 11px;
+  background: rgba(239, 68, 68, 0.1);
+  padding: 2px 10px;
+  border-radius: 20px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.lottery-title {
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 6px;
+  letter-spacing: 0.5px;
+}
+
+.lottery-subtitle {
+  color: #a1a1aa;
+  font-size: 14px;
+  max-width: 450px;
+  line-height: 1.4;
+}
+
+/* Team-Farbmarkierungen */
+.team-blau { border-color: #0070f3 !important; box-shadow: 0 0 15px rgba(0, 112, 243, 0.3); }
+.team-rot { border-color: #dc2626 !important; box-shadow: 0 0 15px rgba(220, 38, 38, 0.3); }
+.team-gruen { border-color: #22c55e !important; box-shadow: 0 0 15px rgba(34, 197, 94, 0.3); }
+.team-gelb { border-color: #eab308 !important; box-shadow: 0 0 15px rgba(234, 179, 8, 0.3); }
+
+/* Animationen */
+.fokus-cam-wrapper {
+  border: 4px solid #3f3f46;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+}
+
+.fokus-team-blau { border-color: #0070f3 !important; box-shadow: 0 0 30px rgba(0, 112, 243, 0.5); }
+.fokus-team-rot { border-color: #dc2626 !important; box-shadow: 0 0 30px rgba(220, 38, 38, 0.5); }
+.fokus-team-gruen { border-color: #22c55e !important; box-shadow: 0 0 30px rgba(34, 197, 94, 0.5); }
+.fokus-team-gelb { border-color: #eab308 !important; box-shadow: 0 0 30px rgba(234, 179, 8, 0.5); }
+
+.flash-blau { border-color: #0070f3 !important; animation: pulseBlue 0.6s infinite alternate; }
+.flash-rot { border-color: #dc2626 !important; animation: pulseRed 0.6s infinite alternate; }
+.flash-gruen { border-color: #22c55e !important; animation: pulseGreen 0.6s infinite alternate; }
+.flash-gelb { border-color: #eab308 !important; animation: pulseYellow 0.6s infinite alternate; }
+
+.rainbow-spinning {
+  animation: rainbowBorder 0.8s infinite linear;
+}
+
+@keyframes rainbowBorder {
+  0% { border-color: #0070f3; box-shadow: 0 0 25px rgba(0, 112, 243, 0.6); }
+  25% { border-color: #22c55e; box-shadow: 0 0 25px rgba(34, 197, 94, 0.6); }
+  50% { border-color: #eab308; box-shadow: 0 0 25px rgba(234, 179, 8, 0.6); }
+  75% { border-color: #a855f7; box-shadow: 0 0 25px rgba(168, 85, 247, 0.6); }
+  100% { border-color: #dc2626; box-shadow: 0 0 25px rgba(220, 38, 38, 0.6); }
+}
+
+@keyframes pulseBlue {
+  from { box-shadow: 0 0 10px rgba(0, 112, 243, 0.3); }
+  to { box-shadow: 0 0 35px rgba(0, 112, 243, 0.8); }
+}
+
+@keyframes pulseRed {
+  from { box-shadow: 0 0 10px rgba(220, 38, 38, 0.3); }
+  to { box-shadow: 0 0 35px rgba(220, 38, 38, 0.8); }
+}
+
+@keyframes pulseGreen {
+  from { box-shadow: 0 0 10px rgba(34, 197, 94, 0.3); }
+  to { box-shadow: 0 0 35px rgba(34, 197, 94, 0.8); }
+}
+
+@keyframes pulseYellow {
+  from { box-shadow: 0 0 10px rgba(234, 179, 8, 0.3); }
+  to { box-shadow: 0 0 35px rgba(234, 179, 8, 0.8); }
+}
+
+.stage-corner-scores {
+  display: flex;
+  gap: 12px;
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: rgba(18, 18, 22, 0.85);
+  backdrop-filter: blur(4px);
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #27272a;
+  font-size: 13px;
+  z-index: 20;
+}
+
+/* Kapitäns-Krone (Wird automatisch an den 1. Spieler im Team vergeben) */
+.cam-box.is-captain::after {
+  content: '👑 CAPTAIN';
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: rgba(234, 179, 8, 0.9);
+  color: #000;
+  font-size: 9px;
+  font-weight: 900;
+  padding: 2px 6px;
+  border-radius: 4px;
+  box-shadow: 0 0 10px rgba(234, 179, 8, 0.6);
+  z-index: 10;
+  letter-spacing: 0.5px;
+}
+
+.corner-score-item.blau { color: #60a5fa; font-weight: bold; }
+.corner-score-item.rot { color: #f87171; font-weight: bold; }
+.corner-score-item.gruen { color: #4ade80; font-weight: bold; }
+.corner-score-item.gelb { color: #facc15; font-weight: bold; }

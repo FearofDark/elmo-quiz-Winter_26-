@@ -4,523 +4,129 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quiz Studio - Team Arena</title>
+  <link rel="stylesheet" href="index.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      background: #090a0f;
-      color: #f0f2f5;
-      margin: 0;
-      padding: 15px;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* ELMO WARM-UP MODAL */
-    #join-modal {
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(9, 10, 15, 0.96);
-      backdrop-filter: blur(10px);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-    .modal-card {
-      background: #131722;
-      border: 1px solid #2a3447;
-      padding: 25px;
-      border-radius: 16px;
-      width: 100%;
-      max-width: 480px;
-      text-align: center;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.7);
-    }
-    .modal-card h2 { color: #ff3b30; margin-top: 0; font-size: 22px; }
-    .game-instruction { color: #9ca3af; font-size: 13px; margin-bottom: 10px; }
-
-    #dino-canvas {
-      background: linear-gradient(to bottom, #120402, #070201);
-      border: 1px solid #ff4500;
-      border-radius: 10px;
-      display: block;
-      margin: 0 auto 15px auto;
-      cursor: pointer;
-    }
-    .score-badge { font-weight: bold; color: #ff3b30; font-size: 16px; margin-bottom: 15px; }
-
-    #name-section { display: none; animation: fadeIn 0.4s ease forwards; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-    #name-section input {
-      width: 100%; padding: 12px; font-size: 15px; margin-bottom: 12px;
-      border-radius: 8px; border: 1px solid #3a475d; background: #090a0f; color: #fff; text-align: center; outline: none;
-    }
-    #name-section button {
-      width: 100%; padding: 12px; font-size: 16px; font-weight: bold; background: #ff3b30; color: white; border: none; border-radius: 8px; cursor: pointer;
-    }
-    #name-section button:hover { background: #d32f2f; }
-
-    /* STUDIO LAYOUT */
-    .studio-layout {
-      display: grid;
-      grid-template-columns: 320px 1fr 320px;
-      gap: 20px;
-      max-width: 1800px;
-      margin: 0 auto;
-      width: 100%;
-      flex-grow: 1;
-    }
-
-    .cam-column { display: flex; flex-direction: column; gap: 15px; }
-
-    .team-header-card {
-      padding: 12px;
-      border-radius: 12px;
-      text-align: center;
-      font-size: 18px;
-      font-weight: 900;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-    }
-    .team-column-blau .team-header-card { background: linear-gradient(135deg, #0070f3, #003380); border: 2px solid #0070f3; color: white; box-shadow: 0 0 20px rgba(0, 112, 243, 0.4); }
-    .team-column-rot .team-header-card { background: linear-gradient(135deg, #ff3b30, #80100a); border: 2px solid #ff3b30; color: white; box-shadow: 0 0 20px rgba(255, 59, 48, 0.4); }
-
-    .cam-box {
-      background: #131722;
-      border: 2px solid #4b5563;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.4);
-      position: relative;
-      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .cam-title {
-      background: #1f2937;
-      color: #d1d5db;
-      padding: 8px 12px;
-      font-size: 13px;
-      font-weight: 700;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .cam-box.team-blau { border-color: #0070f3 !important; box-shadow: 0 0 20px rgba(0, 112, 243, 0.4) !important; }
-    .cam-box.team-blau .cam-title { background: linear-gradient(90deg, #0070f3, #004499) !important; color: white !important; }
-
-    .cam-box.team-rot { border-color: #ff3b30 !important; box-shadow: 0 0 20px rgba(255, 59, 48, 0.4) !important; }
-    .cam-box.team-rot .cam-title { background: linear-gradient(90deg, #ff3b30, #b31a12) !important; color: white !important; }
-
-    .cam-box.in-focus-stage { opacity: 0.25; transform: scale(0.95); }
-
-    iframe { width: 100%; height: 185px; border: none; display: block; }
-    .disabled-slot { display: none !important; }
-
-    .center-stage { display: flex; flex-direction: column; gap: 15px; flex-grow: 1; }
-
-    .host-header-widget {
-      display: flex;
-      gap: 20px;
-      align-items: center;
-      background: #131722;
-      border: 3px solid #ffffff;
-      border-radius: 14px;
-      padding: 10px 20px;
-      box-shadow: 0 0 25px rgba(255, 255, 255, 0.25);
-      position: relative;
-    }
-    .host-cam-mini { width: 220px; height: 125px; border-radius: 8px; overflow: hidden; border: 2px solid #fff; flex-shrink: 0; }
-    .host-cam-mini iframe { height: 125px; width: 220px; }
-    
-    .studio-banner {
-      flex-grow: 1; text-align: center; font-size: 32px; font-weight: 900; letter-spacing: 3px;
-      background: linear-gradient(135deg, #ff0070, #0070f3);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase;
-    }
-
-    .card { background: #131722; border: 1px solid #2a3447; border-radius: 12px; padding: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); display: flex; flex-direction: column; flex-grow: 1; }
-    .question-label { font-size: 11px; text-transform: uppercase; color: #9ca3af; letter-spacing: 1px; margin-bottom: 8px; }
-    .question-text { font-size: 22px; font-weight: 700; margin: 0 0 20px 0; color: #ffffff; min-height: 50px; display: flex; align-items: center; }
-
-    .buzzer-area { display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: auto; padding: 15px 0; }
-    .buzzer-btn {
-      width: 100%; max-width: 480px; height: 110px; background: linear-gradient(135deg, #ff0070, #b80050); color: white; font-size: 28px; font-weight: 800;
-      border: none; border-radius: 16px; cursor: pointer; box-shadow: 0 10px 30px rgba(255, 0, 112, 0.4); text-transform: uppercase; transition: all 0.15s ease;
-    }
-    .buzzer-btn:hover { transform: translateY(-2px); box-shadow: 0 15px 35px rgba(255, 0, 112, 0.6); }
-    .buzzer-btn:active { transform: scale(0.96); }
-    #status { margin-top: 15px; font-size: 16px; font-weight: 600; min-height: 22px; }
-
-    .stage-container { position: relative; display: flex; flex-direction: column; flex-grow: 1; min-height: 380px; overflow: hidden; }
-    .team-badge { font-size: 10px; padding: 2px 8px; border-radius: 4px; background: rgba(0, 0, 0, 0.3); }
-
-    .fokus-stage-box { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 10px; animation: flyCenter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-    @keyframes flyCenter { 0% { transform: scale(0.6); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-    .fokus-cam-wrapper {
-      width: 100%; max-width: 620px; height: 350px; border-radius: 16px; overflow: hidden; border: 4px solid #4b5563; box-shadow: 0 0 40px rgba(0,0,0,0.85); transition: all 0.5s ease;
-    }
-    .fokus-cam-wrapper.flash-blau { border-color: #0070f3 !important; box-shadow: 0 0 60px rgba(0, 112, 243, 0.95) !important; }
-    .fokus-cam-wrapper.flash-rot { border-color: #ff3b30 !important; box-shadow: 0 0 60px rgba(255, 59, 48, 0.95) !important; }
-    .fokus-cam-wrapper iframe { width: 100%; height: 100%; }
-  </style>
+  <script src="elmo-game.js"></script>
+  <script src="index.js"></script>
+  <script src="team-chat.js"></script>
 </head>
 <body>
 
-  <!-- ELMO WARM-UP MODAL -->
-  <div id="join-modal">
-    <div class="modal-card">
-      <h2>🔥 Elmo's Fire Escape</h2>
-      <p class="game-instruction">Springe über die Polizisten und erreiche mindestens <b>69 Punkte</b>!<br>(Leertaste oder Klick zum Springen)</p>
-      
-      <canvas id="dino-canvas" width="400" height="150"></canvas>
-      <div class="score-badge">Score: <span id="score-counter">0</span> / 69</div>
-
-      <div id="name-section">
-        <p style="color: #ff3b30; font-weight: bold; margin-top: 0;">🎉 Entkommen! Elmo ist bereit. Dein Name:</p>
-        <input type="text" id="modal-name-input" placeholder="z.B. Lukas" autofocus>
-        <button onclick="spielBetreten()">Ins Studio eintreten</button>
-      </div>
-    </div>
-  </div>
-
   <div class="studio-layout">
     
-    <!-- LINKS: SPALTE TEAM BLAU -->
-    <div class="cam-column team-column-blau" id="col-links">
-      <div class="team-header-card" id="header-team-blau">🔵 TEAM BLAU</div>
-      <div class="cam-box" id="box-player_1"><div class="cam-title"><span id="title-player_1">Spieler 1</span> <span class="team-badge" id="badge-player_1">NEUTRAL</span></div><iframe src="https://vdo.ninja/?view=player_1&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
-      <div class="cam-box" id="box-player_3"><div class="cam-title"><span id="title-player_3">Spieler 3</span> <span class="team-badge" id="badge-player_3">NEUTRAL</span></div><iframe src="https://vdo.ninja/?view=player_3&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
-      <div class="cam-box" id="box-player_5"><div class="cam-title"><span id="title-player_5">Spieler 5</span> <span class="team-badge" id="badge-player_5">NEUTRAL</span></div><iframe src="https://vdo.ninja/?view=player_5&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
-      <div class="cam-box" id="box-player_7"><div class="cam-title"><span id="title-player_7">Spieler 7</span> <span class="team-badge" id="badge-player_7">NEUTRAL</span></div><iframe src="https://vdo.ninja/?view=player_7&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+    <!-- LINKE SPALTE -->
+    <div class="cam-column">
+      <div class="team-header-card team-header-blau" style="margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center;">
+        <span class="team-name-text" id="header-name-blau" style="color: #60a5fa;">🔵 TEAM BLAU</span>
+        <span class="team-score-badge" id="header-score-blau" style="color: #60a5fa; font-weight: bold; font-size: 16px;"><span id="punkte-gesamt-blau">0</span></span>
+      </div>
+      <div id="container-blau" class="team-drop-zone"></div>
+
+      <div class="team-header-card team-header-gruen" style="margin-top: 10px; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center;">
+        <span class="team-name-text" id="header-name-gruen" style="color: #4ade80;">🟢 TEAM GRÜN</span>
+        <span class="team-score-badge" id="header-score-gruen" style="color: #4ade80; font-weight: bold; font-size: 16px;"><span id="punkte-gesamt-gruen">0</span></span>
+      </div>
+      <div id="container-gruen" class="team-drop-zone"></div>
     </div>
 
-    <!-- MITTE: HOST WIDGET OBEN + QUIZ STAGE -->
+    <!-- MITTE: HOST WIDGET OBEN + BÜHNE -->
     <div class="center-stage">
       
-      <div class="host-header-widget">
+      <!-- Host Header -->
+      <div class="host-header-widget" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 20px;">
         <div class="host-cam-mini">
           <iframe src="https://vdo.ninja/?view=host_cam&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe>
         </div>
-        <div class="studio-banner">ELMO-QUIZ</div>
+        
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+          <div class="studio-banner-main">ELMO-QUIZ</div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <div id="active-game-title-badge" class="pulse-badge">Auslosung</div>
+            <button onclick="openSelfElmoPopup()" style="background: linear-gradient(135deg, #e11d48, #f43f5e); color: white; border: none; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 8px rgba(225,29,72,0.4);">
+              🕹️ Spaß (Elmo-Game)
+            </button>
+          </div>
+        </div>
+
+        <div class="host-cam-mini" style="overflow: hidden; display: flex; align-items: center; justify-content: center;">
+          <img src="https://media.tenor.com/leajUao4yaIAAAAe/elmo-coke.png" alt="Elmo" style="width: 100%; height: 100%; object-fit: cover;">
+        </div>
       </div>
 
+      <!-- BÜHNE -->
       <div id="dynamic-game-stage" class="stage-container card">
-        <div id="modul-normal" style="display: flex; flex-direction: column; height: 100%;">
-          <div class="question-label">Aktuelle Quiz-Frage</div>
-          <div class="question-text" id="frage-text">Warte auf Spielbeginn...</div>
-          
-          <div class="buzzer-area">
-            <button class="buzzer-btn" onclick="buzzern()">🚨 BUZZERN 🚨</button>
-            <p id="status"></p>
-          </div>
+        <div class="lottery-stage-box" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; gap: 10px;">
+          <div class="lottery-live-badge">● LIVE</div>
+          <div class="lottery-title" style="font-size: 28px; font-weight: bold; color: #f4f4f5;">Warte auf Auslosung...</div>
+          <div class="lottery-subtitle" style="font-size: 14px; color: #71717a;">Gleich geht es los!</div>
+        </div>
+      </div>
+
+      <!-- NEUTRALER WARTEBEREICH -->
+      <div class="card" id="neutral-waiting-area" style="padding: 10px; background: #09090b;">
+        <div style="font-size: 11px; color: #71717a; text-transform: uppercase; margin-bottom: 6px; font-weight: bold; letter-spacing: 1px;">Wartebereich:</div>
+        <div id="container-neutral" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; min-height: 110px;">
+          <div class="cam-box" id="box-player_1"><div class="cam-title"><span id="title-player_1">Spieler 1</span></div><iframe id="iframe-player_1" src="https://vdo.ninja/?view=player_1&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+          <div class="cam-box" id="box-player_2"><div class="cam-title"><span id="title-player_2">Spieler 2</span></div><iframe id="iframe-player_2" src="https://vdo.ninja/?view=player_2&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+          <div class="cam-box" id="box-player_3"><div class="cam-title"><span id="title-player_3">Spieler 3</span></div><iframe id="iframe-player_3" src="https://vdo.ninja/?view=player_3&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+          <div class="cam-box" id="box-player_4"><div class="cam-title"><span id="title-player_4">Spieler 4</span></div><iframe id="iframe-player_4" src="https://vdo.ninja/?view=player_4&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+          <div class="cam-box" id="box-player_5"><div class="cam-title"><span id="title-player_5">Spieler 5</span></div><iframe id="iframe-player_5" src="https://vdo.ninja/?view=player_5&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+          <div class="cam-box" id="box-player_6"><div class="cam-title"><span id="title-player_6">Spieler 6</span></div><iframe id="iframe-player_6" src="https://vdo.ninja/?view=player_6&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+          <div class="cam-box" id="box-player_7"><div class="cam-title"><span id="title-player_7">Spieler 7</span></div><iframe id="iframe-player_7" src="https://vdo.ninja/?view=player_7&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+          <div class="cam-box" id="box-player_8"><div class="cam-title"><span id="title-player_8">Spieler 8</span></div><iframe id="iframe-player_8" src="https://vdo.ninja/?view=player_8&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
         </div>
       </div>
 
     </div>
 
-    <!-- RECHTS: SPALTE TEAM ROT -->
-    <div class="cam-column team-column-rot" id="col-rechts">
-      <div class="team-header-card" id="header-team-rot">🔴 TEAM ROT</div>
-      <div class="cam-box" id="box-player_2"><div class="cam-title"><span id="title-player_2">Spieler 2</span> <span class="team-badge" id="badge-player_2">NEUTRAL</span></div><iframe src="https://vdo.ninja/?view=player_2&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
-      <div class="cam-box" id="box-player_4"><div class="cam-title"><span id="title-player_4">Spieler 4</span> <span class="team-badge" id="badge-player_4">NEUTRAL</span></div><iframe src="https://vdo.ninja/?view=player_4&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
-      <div class="cam-box" id="box-player_6"><div class="cam-title"><span id="title-player_6">Spieler 6</span> <span class="team-badge" id="badge-player_6">NEUTRAL</span></div><iframe src="https://vdo.ninja/?view=player_6&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
-      <div class="cam-box" id="box-player_8"><div class="cam-title"><span id="title-player_8">Spieler 8</span> <span class="team-badge" id="badge-player_8">NEUTRAL</span></div><iframe src="https://vdo.ninja/?view=player_8&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe></div>
+    <!-- RECHTE SPALTE -->
+    <div class="cam-column">
+      <div class="team-header-card team-header-rot" style="margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center;">
+        <span class="team-name-text" id="header-name-rot" style="color: #f87171;">🔴 TEAM ROT</span>
+        <span class="team-score-badge" id="header-score-rot" style="color: #f87171; font-weight: bold; font-size: 16px;"><span id="punkte-gesamt-rot">0</span></span>
+      </div>
+      <div id="container-rot" class="team-drop-zone"></div>
+
+      <div class="team-header-card team-header-gelb" style="margin-top: 10px; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center;">
+        <span class="team-name-text" id="header-name-gelb" style="color: #facc15;">🟡 TEAM GELB</span>
+        <span class="team-score-badge" id="header-score-gelb" style="color: #facc15; font-weight: bold; font-size: 16px;"><span id="punkte-gesamt-gelb">0</span></span>
+      </div>
+      <div id="container-gelb" class="team-drop-zone"></div>
     </div>
 
   </div>
 
-  <script>
-    const supabaseClient = supabase.createClient(SUPABASE_CONFIG.URL, SUPABASE_CONFIG.KEY);
-    const MY_SLOT = "player_1"; // Diesen Wert pro Browser-Tab anpassen (z.B. player_2 etc.)
-    let meinName = "Gast";
-    let finalScore = 0;
-
-    async function spielBetreten() {
-      const inputVal = document.getElementById('modal-name-input').value.trim();
-      if (inputVal) {
-        meinName = inputVal;
-        await supabaseClient.from('player_slots').update({ spieler_name: meinName }).eq('slot_id', MY_SLOT);
-      }
+  <!-- SPIELER AUSWAHL MODAL -->
+  <div id="player-setup-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(3, 3, 5, 0.95); z-index: 9999; justify-content: center; align-items: center;">
+    <div style="background: #09090b; border: 1px solid #27272a; padding: 30px; border-radius: 16px; width: 350px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.8);">
+      <h2 style="margin-top: 0; color: #f43f5e; font-size: 22px;">🎮 Spieler-Setup</h2>
+      <p style="color: #a1a1aa; font-size: 13px; margin-bottom: 20px;">Bitte wähle deinen zugewiesenen Platz aus:</p>
       
-      await supabaseClient.from('buzzer_log').insert([{ 
-        spieler_name: `${meinName} (Elmo Score: ${finalScore})` 
-      }]);
+      <select id="modal-slot-select" style="width: 100%; background: #18181b; border: 1px solid #27272a; color: white; padding: 10px; border-radius: 8px; font-size: 14px; margin-bottom: 20px;">
+        <option value="player_1">Spieler 1</option>
+        <option value="player_2">Spieler 2</option>
+        <option value="player_3">Spieler 3</option>
+        <option value="player_4">Spieler 4</option>
+        <option value="player_5">Spieler 5</option>
+        <option value="player_6">Spieler 6</option>
+        <option value="player_7">Spieler 7</option>
+        <option value="player_8">Spieler 8</option>
+      </select>
 
-      document.getElementById('join-modal').style.display = 'none';
-    }
+      <button onclick="savePlayerSlot()" style="width: 100%; background: linear-gradient(135deg, #f43f5e, #e11d48); color: white; border: none; padding: 12px; font-weight: bold; border-radius: 8px; cursor: pointer; font-size: 14px;">
+        🚀 Ins Studio eintreten
+      </button>
+    </div>
+  </div>
 
-    /* --- ELMO WARM-UP ENGINE --- */
-    const canvas = document.getElementById('dino-canvas');
-    const ctx = canvas.getContext('2d');
-    let score = 0;
-    let gameOver = false;
-    let unlocked = false;
+  <!-- ELMO SPASS-GAME POP-UP OVERLAY -->
+  <div id="elmo-popup-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(9, 9, 11, 0.95); z-index: 10000; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;">
+    <div style="width: 100%; max-width: 900px; height: 500px; position: relative;">
+      <button onclick="closeSelfElmoPopup()" style="position: absolute; top: -15px; right: -15px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 36px; height: 36px; font-weight: bold; cursor: pointer; z-index: 10001; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">✕</button>
+      <div id="elmo-popup-container" style="width: 100%; height: 100%;"></div>
+    </div>
+  </div>
 
-    let elmo = { x: 35, y: 100, w: 22, h: 32, vy: 0, gravity: 0.6, jumping: false };
-    let obstacles = [];
-    let frame = 0;
-
-    function jump() {
-      if (!elmo.jumping && !gameOver) {
-        elmo.vy = -10.5;
-        elmo.jumping = true;
-      }
-      if (gameOver) restartGame();
-    }
-
-    document.addEventListener('keydown', e => { if (e.code === 'Space' || e.code === 'ArrowUp') { e.preventDefault(); jump(); } });
-    canvas.addEventListener('click', jump);
-
-    function restartGame() {
-      score = 0; obstacles = []; gameOver = false; elmo.y = 100; elmo.vy = 0; elmo.jumping = false;
-      document.getElementById('score-counter').innerText = 0;
-      updateElmoGame();
-    }
-
-    function updateElmoGame() {
-      if (gameOver) return;
-      frame++;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      ctx.strokeStyle = '#ff3300'; ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.moveTo(0, 135); ctx.lineTo(400, 135); ctx.stroke();
-
-      elmo.vy += elmo.gravity; elmo.y += elmo.vy;
-      if (elmo.y >= 100) { elmo.y = 100; elmo.jumping = false; }
-
-      // Elmo zeichnen
-      ctx.fillStyle = '#ff3b30'; ctx.fillRect(elmo.x + 3, elmo.y + 12, 16, 20);
-      ctx.beginPath(); ctx.arc(elmo.x + 11, elmo.y + 10, 10, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath(); ctx.arc(elmo.x + 7, elmo.y + 6, 3.5, 0, Math.PI * 2); ctx.fill();
-      ctx.beginPath(); ctx.arc(elmo.x + 15, elmo.y + 6, 3.5, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#000000';
-      ctx.beginPath(); ctx.arc(elmo.x + 8, elmo.y + 6, 1.2, 0, Math.PI * 2); ctx.fill();
-      ctx.beginPath(); ctx.arc(elmo.x + 16, elmo.y + 6, 1.2, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#ff9500';
-      ctx.beginPath(); ctx.arc(elmo.x + 11, elmo.y + 10, 2.5, 0, Math.PI * 2); ctx.fill();
-
-      if (frame % 85 === 0) obstacles.push({ x: 400, y: 105, w: 18, h: 30 });
-
-      for (let i = 0; i < obstacles.length; i++) {
-        let obs = obstacles[i]; obs.x -= 4.2;
-        ctx.fillStyle = '#1e3a8a'; ctx.fillRect(obs.x + 3, obs.y + 12, 12, 18);
-        ctx.fillStyle = '#fbcfe8'; ctx.fillRect(obs.x + 4, obs.y + 5, 10, 8);
-        ctx.fillStyle = '#0f172a'; ctx.fillRect(obs.x + 2, obs.y, 14, 5);
-        ctx.fillStyle = (frame % 10 < 5) ? '#3b82f6' : '#60a5fa';
-        ctx.beginPath(); ctx.arc(obs.x + 9, obs.y - 2, 2.5, 0, Math.PI * 2); ctx.fill();
-
-        if (elmo.x < obs.x + obs.w && elmo.x + elmo.w > obs.x && elmo.y < obs.y + obs.h && elmo.y + elmo.h > obs.y) {
-          gameOver = true;
-          ctx.fillStyle = '#ffffff'; ctx.font = '14px sans-serif'; ctx.textAlign = 'center';
-          ctx.fillText('Verhaftet! Klick für Neustart', canvas.width / 2, 75);
-        }
-      }
-
-      obstacles = obstacles.filter(obs => obs.x > -20);
-      if (frame % 10 === 0 && !gameOver) {
-        score++; finalScore = score;
-        document.getElementById('score-counter').innerText = score;
-        if (score >= 69 && !unlocked) {
-          unlocked = true;
-          document.getElementById('name-section').style.display = 'block';
-        }
-      }
-      requestAnimationFrame(updateElmoGame);
-    }
-    updateElmoGame();
-
-
-    /* --- REALTIME LISTENER --- */
-    async function ladeNamen() {
-      const { data } = await supabaseClient.from('player_slots').select('*');
-      if (data) {
-        data.forEach(row => {
-          const titleEl = document.getElementById(`title-${row.slot_id}`);
-          if (titleEl) titleEl.innerText = row.spieler_name;
-        });
-      }
-    }
-
-    const channel = supabaseClient.channel('game-channel', { config: { broadcast: { self: true } } });
-
-    channel
-      .on('broadcast', { event: 'update_team_names' }, payload => {
-        const { nameBlau, nameRot } = payload.payload;
-        if(nameBlau) document.getElementById('header-team-blau').innerText = `🔵 ${nameBlau.toUpperCase()}`;
-        if(nameRot) document.getElementById('header-team-rot').innerText = `🔴 ${nameRot.toUpperCase()}`;
-      })
-      .on('broadcast', { event: 'update_teams' }, payload => {
-        const { activeCount } = payload.payload;
-        for (let i = 1; i <= 8; i++) {
-          const boxEl = document.getElementById(`box-player_${i}`);
-          if (boxEl) boxEl.classList.toggle('disabled-slot', i > activeCount);
-        }
-      })
-      .on('broadcast', { event: 'focus_player' }, payload => {
-        const { slotId } = payload.payload;
-        const stage = document.getElementById('dynamic-game-stage');
-
-        for (let i = 1; i <= 8; i++) {
-          const b = document.getElementById(`box-player_${i}`);
-          if (b) b.classList.remove('in-focus-stage');
-        }
-
-        if (slotId) {
-          const origBox = document.getElementById(`box-${slotId}`);
-          if (origBox) origBox.classList.add('in-focus-stage');
-          const pName = document.getElementById(`title-${slotId}`) ? document.getElementById(`title-${slotId}`).innerText : slotId;
-
-          stage.innerHTML = `
-            <div class="fokus-stage-box">
-              <h2 style="color: #0070f3; margin: 0 0 10px 0; font-size: 22px; text-transform: uppercase;">🎥 FOKUS: ${pName}</h2>
-              <div class="fokus-cam-wrapper" id="fokus-wrapper">
-                <iframe src="https://vdo.ninja/?view=${slotId}&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe>
-              </div>
-            </div>
-          `;
-        } else {
-          stage.innerHTML = `
-            <div id="modul-normal" style="display: flex; flex-direction: column; height: 100%;">
-              <div class="question-label">Aktuelle Quiz-Frage</div>
-              <div class="question-text" id="frage-text">Warte auf Spielbeginn...</div>
-              <div class="buzzer-area">
-                <button class="buzzer-btn" onclick="buzzern()">🚨 BUZZERN 🚨</button>
-                <p id="status"></p>
-              </div>
-            </div>
-          `;
-        }
-      })
-      .on('broadcast', { event: 'assign_team_animated' }, payload => {
-        const { slotId, team } = payload.payload;
-        const wrapper = document.getElementById('fokus-wrapper');
-        const origBox = document.getElementById(`box-${slotId}`);
-        const badge = document.getElementById(`badge-${slotId}`);
-
-        if (wrapper) wrapper.classList.add(team === 'blau' ? 'flash-blau' : 'flash-rot');
-
-        setTimeout(() => {
-          if (origBox) {
-            origBox.classList.remove('team-blau', 'team-rot');
-            origBox.classList.add(team === 'blau' ? 'team-blau' : 'team-rot');
-            const targetColumn = document.getElementById(team === 'blau' ? 'col-links' : 'col-rechts');
-            if (targetColumn && origBox.parentElement !== targetColumn) targetColumn.appendChild(origBox);
-          }
-          if (badge) badge.innerText = team === 'blau' ? 'TEAM BLAU' : 'TEAM ROT';
-        }, 600);
-      })
-      .on('broadcast', { event: 'switch_game' }, payload => {
-        const data = payload.payload;
-        const stage = document.getElementById('dynamic-game-stage');
-
-        if (data.game === 'drawing') {
-          const isPainter = (MY_SLOT === data.painter);
-          stage.innerHTML = `
-            <div style="display: flex; flex-direction: column; height: 100%; justify-content: space-between; padding: 10px;">
-              <div style="display: flex; justify-content: space-between; background: #1a1f2c; padding: 8px 12px; border-radius: 6px;">
-                <span style="font-weight: bold; color: #0070f3;" id="draw-status">Team-Zeichenduell</span>
-                <span id="word-display" style="color: #00ff7f; font-weight: bold; display: none;">Wort: ${data.word}</span>
-              </div>
-              <div style="display: flex; justify-content: center; align-items: center; flex-grow: 1;">
-                <canvas id="live-canvas" width="550" height="320" style="background: white; border-radius: 6px; cursor: crosshair;"></canvas>
-              </div>
-              <div id="draw-tools" style="display: none; justify-content: center; gap: 10px; background: #1a1f2c; padding: 6px; border-radius: 6px;">
-                <input type="color" id="p-color" value="#000000" style="width: 30px; height: 30px; border:none; background:none; cursor:pointer;">
-                <button onclick="clearCanvas()" style="background: #dc2626; color: white; border:none; padding: 4px 10px; border-radius: 4px; cursor:pointer;">Löschen</button>
-              </div>
-            </div>
-          `;
-
-          const canvasEl = document.getElementById('live-canvas');
-          const ctxEl = canvasEl.getContext('2d');
-          let drawing = false;
-
-          if (isPainter) {
-            document.getElementById('draw-status').innerText = "🎨 DU MALST!";
-            document.getElementById('word-display').style.display = 'block';
-            document.getElementById('draw-tools').style.display = 'flex';
-
-            canvasEl.addEventListener('mousedown', e => {
-              drawing = true;
-              const rect = canvasEl.getBoundingClientRect();
-              const x = e.clientX - rect.left, y = e.clientY - rect.top;
-              drawDot(ctxEl, x, y, document.getElementById('p-color').value, 6);
-              channel.send({ type: 'broadcast', event: 'draw_stroke', payload: { x, y, color: document.getElementById('p-color').value } });
-            });
-            canvasEl.addEventListener('mousemove', e => {
-              if (!drawing) return;
-              const rect = canvasEl.getBoundingClientRect();
-              const x = e.clientX - rect.left, y = e.clientY - rect.top;
-              drawDot(ctxEl, x, y, document.getElementById('p-color').value, 6);
-              channel.send({ type: 'broadcast', event: 'draw_stroke', payload: { x, y, color: document.getElementById('p-color').value } });
-            });
-            window.addEventListener('mouseup', () => drawing = false);
-          } else {
-            document.getElementById('draw-status').innerText = "🕵️ DU RÄTST!";
-          }
-        } else {
-          stage.innerHTML = `
-            <div id="modul-normal" style="display: flex; flex-direction: column; height: 100%;">
-              <div class="question-label">Aktuelle Quiz-Frage</div>
-              <div class="question-text" id="frage-text">Warte auf Spielbeginn...</div>
-              <div class="buzzer-area">
-                <button class="buzzer-btn" onclick="buzzern()">🚨 BUZZERN 🚨</button>
-                <p id="status"></p>
-              </div>
-            </div>
-          `;
-        }
-      })
-      .on('broadcast', { event: 'draw_stroke' }, payload => {
-        const canvasEl = document.getElementById('live-canvas');
-        if (canvasEl) drawDot(canvasEl.getContext('2d'), payload.payload.x, payload.payload.y, payload.payload.color, 6);
-      })
-      .on('broadcast', { event: 'clear_canvas' }, () => {
-        const canvasEl = document.getElementById('live-canvas');
-        if (canvasEl) canvasEl.getContext('2d').clearRect(0, 0, canvasEl.width, canvasEl.height);
-      })
-      .subscribe();
-
-    function drawDot(context, x, y, color, size) {
-      context.fillStyle = color;
-      context.beginPath();
-      context.arc(x, y, size, 0, Math.PI * 2);
-      context.fill();
-    }
-
-    async function clearCanvas() {
-      const canvasEl = document.getElementById('live-canvas');
-      canvasEl.getContext('2d').clearRect(0, 0, canvasEl.width, canvasEl.height);
-      await channel.send({ type: 'broadcast', event: 'clear_canvas', payload: {} });
-    }
-
-    supabaseClient.channel('db-channel')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'player_slots' }, () => ladeNamen())
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'game_state' }, payload => {
-        const fText = document.getElementById('frage-text');
-        if (fText) fText.innerText = payload.new.aktuelle_frage;
-      })
-      .subscribe();
-
-    async function buzzern() {
-      const { data } = await supabaseClient.from('player_slots').select('spieler_name').eq('slot_id', MY_SLOT).single();
-      const name = data ? data.spieler_name : MY_SLOT;
-      await supabaseClient.from('buzzer_log').insert([{ spieler_name: name }]);
-      const statusEl = document.getElementById('status');
-      if (statusEl) {
-        statusEl.innerText = "🚀 ERFOLGREICH GEBUZZERT!";
-        statusEl.style.color = "#00ff7f";
-      }
-    }
-
-    window.addEventListener('DOMContentLoaded', ladeNamen);
-  </script>
 </body>
 </html>

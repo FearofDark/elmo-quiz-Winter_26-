@@ -2,356 +2,163 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>Quiz Studio - Regiezentrale</title>
+  <title>Quiz Studio - Admin Regie</title>
+  <link rel="stylesheet" href="admin.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      background: #090a0f;
-      color: #f0f2f5;
-      margin: 0;
-      padding: 15px;
-      min-height: 100vh;
-    }
-
-    .admin-header {
-      text-align: center;
-      margin-bottom: 15px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid #2a3447;
-    }
-    .admin-header h1 {
-      margin: 0;
-      font-size: 22px;
-      background: linear-gradient(135deg, #0070f3, #ff0070);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-    }
-
-    /* 3-SPALTEN LAYOUT */
-    .admin-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 15px;
-      max-width: 1700px;
-      margin: 0 auto;
-    }
-
-    .column {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-
-    .card {
-      background: #131722;
-      border: 1px solid #2a3447;
-      border-radius: 12px;
-      padding: 15px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-    }
-
-    h2 {
-      margin-top: 0;
-      font-size: 15px;
-      color: #0070f3;
-      border-bottom: 1px solid #2a3447;
-      padding-bottom: 6px;
-      margin-bottom: 10px;
-    }
-
-    label {
-      display: block;
-      font-size: 11px;
-      color: #9ca3af;
-      margin-top: 6px;
-      margin-bottom: 3px;
-      font-weight: 600;
-    }
-
-    button, select, input {
-      padding: 8px 10px;
-      font-size: 12px;
-      font-weight: 600;
-      border-radius: 6px;
-      border: 1px solid #3a475d;
-      background: #090a0f;
-      color: white;
-      outline: none;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    button { background: #0070f3; border: none; }
-    button:hover { background: #005bb5; }
-
-    .btn-purple { background: #7c3aed; }
-    .btn-purple:hover { background: #6d28d9; }
-    .btn-red { background: #dc2626; }
-    .btn-red:hover { background: #b91c1c; }
-
-    .btn-group { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
-
-    /* Namenseingabe Grid */
-    .name-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-    .name-row {
-      display: flex; align-items: center; gap: 4px; background: #1a1f2c; padding: 4px 8px; border-radius: 6px; border: 1px solid #2a3447;
-    }
-    .name-row label { margin: 0; width: 25px; color: #9ca3af; font-size: 10px; }
-    .name-row input { flex-grow: 1; padding: 4px; font-size: 11px; }
-
-    /* Text-Log für Buzzer (Ticker-artig) */
-    .buzzer-log-box {
-      background: #090a0f;
-      border: 1px solid #2a3447;
-      border-radius: 6px;
-      padding: 8px;
-      height: 180px;
-      overflow-y: auto;
-      font-family: monospace;
-      font-size: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .buzzer-log-item {
-      background: #1a1f2c;
-      padding: 6px 8px;
-      border-radius: 4px;
-      border-left: 3px solid #0070f3;
-    }
-    .buzzer-log-item.rank-1 {
-      border-left-color: #ff0070;
-      background: #26111f;
-    }
-  </style>
+  <script src="admin.js" defer></script>
 </head>
-<body>
+<body style="background: #09090b; color: white; padding: 20px; font-family: sans-serif; box-sizing: border-box;">
 
-  <div class="admin-header">
-    <h1>🎛️ Quiz Studio Regiezentrale</h1>
-  </div>
+  <h2 style="margin-top: 0; color: #f43f5e; border-bottom: 1px solid #27272a; padding-bottom: 10px;">🎬 Quiz Studio - Regie-Panel</h2>
 
-  <div class="admin-grid">
-
-    <!-- SPALTE 1: SPIEL-MODI & QUIZ-STEUERUNG -->
-    <div class="column">
+  <div style="display: flex; flex-direction: column; gap: 20px;">
+    
+    <!-- OBERER BEREICH: MODUS SWITCHER & PUNKTETABELLE -->
+    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 15px;">
       
-      <!-- Spiel-Modus Umschalter -->
-      <div class="card" style="border-color: #7c3aed;">
-        <h2 style="color: #7c3aed;">🎮 Spiel-Modus Umschalter</h2>
-        <label>Aktiver Modus auf der Hauptbühne:</label>
-        <select id="game-mode-select" onchange="spielModusWechseln()" style="width: 100%;">
-          <option value="lottery">🎰 Live Team-Auslosung (Start-Phase)</option>
-          <option value="normal" selected>❓ Standard Quiz-Frage & Buzzer</option>
-          <option value="drawing">🎨 Team-Zeichenduell (Montagsmaler)</option>
+      <!-- Spiel Modus Switcher -->
+      <div class="card" style="padding: 15px; background: #121216; border: 1px solid #27272a; border-radius: 12px; display: flex; flex-direction: column; gap: 10px;">
+        <div style="font-size: 12px; font-weight: bold; color: #38bdf8;">🎮 Studio Spielmodus</div>
+        <select id="admin-game-mode" onchange="AdminPanel.setGameMode(this.value)" style="background: #18181b; color: white; border: 1px solid #27272a; padding: 10px; border-radius: 6px; font-weight: bold;">
+          <option value="lottery">Modus: 🎯 Auslosung / Standard</option>
+          <option value="game_1">Modus: 🎮 Spiel 1</option>
         </select>
-
-        <!-- Zeichenduell Optionen -->
-        <div id="drawing-settings" style="display: none; margin-top: 10px; background: #1a1f2c; padding: 10px; border-radius: 6px; border: 1px solid #2a3447;">
-          <label>Wer ist Maler?</label>
-          <select id="draw-role-p1" style="width: 100%;">
-            <option value="player_1">Spieler 1</option><option value="player_2">Spieler 2</option><option value="player_3">Spieler 3</option><option value="player_4">Spieler 4</option>
-            <option value="player_5">Spieler 5</option><option value="player_6">Spieler 6</option><option value="player_7">Spieler 7</option><option value="player_8">Spieler 8</option>
-          </select>
-          <label>Geheimes Wort:</label>
-          <input type="text" id="draw-secret-word" value="Feuerwehr" style="width: 100%;">
-          <button onclick="updateDrawingConfig()" style="background: #059669; width: 100%; margin-top: 8px;">Zeichen-Runde Starten</button>
-        </div>
+        <div style="font-size: 11px; color: #71717a;">Wechselt den Modus live bei allen verbundenen Spielern.</div>
       </div>
 
-      <!-- Quiz-Fragen Steuerung (erscheint nur im Normal-Modus) -->
-      <div class="card" id="normal-quiz-controls">
-        <h2>🎛️ Quiz-Fragen Steuerung</h2>
-        <div class="btn-group" style="margin-bottom: 8px;">
-          <button onclick="sendeFrage('Frage 1: Was ist die Hauptstadt von Australien?')">Frage 1</button>
-          <button onclick="sendeFrage('Frage 2: Welches Element hat das Symbol Au?')">Frage 2</button>
-          <button onclick="sendeFrage('Frage 3: Wie viele Kontinente gibt es?')">Frage 3</button>
+      <!-- Team-Namen & Punktetabelle -->
+      <div class="card" style="padding: 15px; background: #121216; border: 1px solid #27272a; border-radius: 12px;">
+        <div style="font-size: 12px; font-weight: bold; color: #22c55e; margin-bottom: 10px;">🏆 Team-Namen & Gesamtpunkte</div>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+          
+          <!-- Blau -->
+          <div style="background: #18181b; padding: 8px; border-radius: 8px; border: 1px solid #38bdf840; display: flex; flex-direction: column; gap: 4px;">
+            <input type="text" id="team-name-blau" oninput="AdminPanel.updateTeamName('blau', this.value)" placeholder="Team Blau" style="background: #09090b; border: 1px solid #27272a; color: #38bdf8; font-weight: bold; padding: 4px; border-radius: 4px; text-align: center; font-size: 11px;">
+            <div style="display: flex; justify-content: center; align-items: center; gap: 4px;">
+              <button onclick="AdminPanel.addPoints('blau', -1)" style="background: #dc2626; border: none; color: white; padding: 2px 6px; font-size: 10px; border-radius: 3px; cursor: pointer;">-1</button>
+              <input type="number" id="input-score-blau" onchange="AdminPanel.setExactPoints('blau', this.value)" style="width: 40px; background: #09090b; border: 1px solid #27272a; color: white; text-align: center; padding: 2px; border-radius: 3px; font-size: 11px;" value="0">
+              <button onclick="AdminPanel.addPoints('blau', 1)" style="background: #16a34a; border: none; color: white; padding: 2px 6px; font-size: 10px; border-radius: 3px; cursor: pointer;">+1</button>
+            </div>
+          </div>
+
+          <!-- Rot -->
+          <div style="background: #18181b; padding: 8px; border-radius: 8px; border: 1px solid #ef444440; display: flex; flex-direction: column; gap: 4px;">
+            <input type="text" id="team-name-rot" oninput="AdminPanel.updateTeamName('rot', this.value)" placeholder="Team Rot" style="background: #09090b; border: 1px solid #27272a; color: #f87171; font-weight: bold; padding: 4px; border-radius: 4px; text-align: center; font-size: 11px;">
+            <div style="display: flex; justify-content: center; align-items: center; gap: 4px;">
+              <button onclick="AdminPanel.addPoints('rot', -1)" style="background: #dc2626; border: none; color: white; padding: 2px 6px; font-size: 10px; border-radius: 3px; cursor: pointer;">-1</button>
+              <input type="number" id="input-score-rot" onchange="AdminPanel.setExactPoints('rot', this.value)" style="width: 40px; background: #09090b; border: 1px solid #27272a; color: white; text-align: center; padding: 2px; border-radius: 3px; font-size: 11px;" value="0">
+              <button onclick="AdminPanel.addPoints('rot', 1)" style="background: #16a34a; border: none; color: white; padding: 2px 6px; font-size: 10px; border-radius: 3px; cursor: pointer;">+1</button>
+            </div>
+          </div>
+
+          <!-- Grün -->
+          <div style="background: #18181b; padding: 8px; border-radius: 8px; border: 1px solid #22c55e40; display: flex; flex-direction: column; gap: 4px;">
+            <input type="text" id="team-name-gruen" oninput="AdminPanel.updateTeamName('gruen', this.value)" placeholder="Team Grün" style="background: #09090b; border: 1px solid #27272a; color: #4ade80; font-weight: bold; padding: 4px; border-radius: 4px; text-align: center; font-size: 11px;">
+            <div style="display: flex; justify-content: center; align-items: center; gap: 4px;">
+              <button onclick="AdminPanel.addPoints('gruen', -1)" style="background: #dc2626; border: none; color: white; padding: 2px 6px; font-size: 10px; border-radius: 3px; cursor: pointer;">-1</button>
+              <input type="number" id="input-score-gruen" onchange="AdminPanel.setExactPoints('gruen', this.value)" style="width: 40px; background: #09090b; border: 1px solid #27272a; color: white; text-align: center; padding: 2px; border-radius: 3px; font-size: 11px;" value="0">
+              <button onclick="AdminPanel.addPoints('gruen', 1)" style="background: #16a34a; border: none; color: white; padding: 2px 6px; font-size: 10px; border-radius: 3px; cursor: pointer;">+1</button>
+            </div>
+          </div>
+
+          <!-- Gelb -->
+          <div style="background: #18181b; padding: 8px; border-radius: 8px; border: 1px solid #eab30840; display: flex; flex-direction: column; gap: 4px;">
+            <input type="text" id="team-name-gelb" oninput="AdminPanel.updateTeamName('gelb', this.value)" placeholder="Team Gelb" style="background: #09090b; border: 1px solid #27272a; color: #facc15; font-weight: bold; padding: 4px; border-radius: 4px; text-align: center; font-size: 11px;">
+            <div style="display: flex; justify-content: center; align-items: center; gap: 4px;">
+              <button onclick="AdminPanel.addPoints('gelb', -1)" style="background: #dc2626; border: none; color: white; padding: 2px 6px; font-size: 10px; border-radius: 3px; cursor: pointer;">-1</button>
+              <input type="number" id="input-score-gelb" onchange="AdminPanel.setExactPoints('gelb', this.value)" style="width: 40px; background: #09090b; border: 1px solid #27272a; color: white; text-align: center; padding: 2px; border-radius: 3px; font-size: 11px;" value="0">
+              <button onclick="AdminPanel.addPoints('gelb', 1)" style="background: #16a34a; border: none; color: white; padding: 2px 6px; font-size: 10px; border-radius: 3px; cursor: pointer;">+1</button>
+            </div>
+          </div>
+
         </div>
-        <button onclick="resetBuzzer()" class="btn-red" style="width: 100%;">🔄 Buzzer Zurücksetzen</button>
       </div>
 
     </div>
 
-    <!-- SPALTE 2: KAMERA-FOKUS & TEAM-ZUWEISUNG -->
-    <div class="column">
-      
-      <div class="card" style="border-color: #0070f3;">
-        <h2>🎥 Kamera-Fokus & Zuweisung</h2>
+    <!-- MITTLERER BEREICH: SPIEL 1 STEUERUNG & SPIELER-ÜBERSICHT -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+
+      <!-- Sektion: Studio-Bühnen-Panel für Spiel 1 -->
+      <div class="card" style="padding: 20px; background: #121216; border: 1px solid #27272a; border-radius: 12px; min-height: 320px; display: flex; flex-direction: column; gap: 15px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="font-size: 13px; font-weight: bold; color: #38bdf8;">🎬 Spiel 1 Steuerung</div>
+          <button onclick="AdminPanel.unfocusPlayer()" style="background: #27272a; border: 1px solid #3f3f46; padding: 4px 10px; font-size: 11px; border-radius: 4px; color: white; cursor: pointer;">Fokus aufheben</button>
+        </div>
         
-        <label>Spieler-Kamera auswählen:</label>
-        <select id="focused-player-select" style="width: 100%; margin-bottom: 8px;">
-          <option value="player_1">Spieler 1</option><option value="player_2">Spieler 2</option><option value="player_3">Spieler 3</option><option value="player_4">Spieler 4</option>
-          <option value="player_5">Spieler 5</option><option value="player_6">Spieler 6</option><option value="player_7">Spieler 7</option><option value="player_8">Spieler 8</option>
-        </select>
-
-        <div style="display: flex; gap: 6px; margin-bottom: 12px;">
-          <button onclick="fokussiereAusgewaehlten()" class="btn-purple" style="flex: 1;">🎥 In die Mitte holen</button>
-          <button onclick="fokusZuruecksetzen()" style="background: #4b5563;">✖ Aus</button>
+        <div id="admin-game-specific-controls" style="background: #18181b; border: 2px dashed #27272a; border-radius: 8px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1; text-align: center; color: #71717a; gap: 8px;">
+          <div style="font-size: 13px; font-weight: bold; color: #38bdf8;">📌 Steuerung für Spiel 1</div>
+          <div style="font-size: 11px; color: #a1a1aa;">Hier kannst du die Regie-Bedienelemente für euer erstes Quiz-Spiel einbauen.</div>
         </div>
+      </div>
 
-        <label style="border-top: 1px solid #2a3447; padding-top: 8px;">Team zuweisen (Animiert):</label>
-        <div style="display: flex; gap: 6px;">
-          <button onclick="auslosenZielTeam('blau')" style="background: #0070f3; flex: 1;">🔵 Zu Team Blau</button>
-          <button onclick="auslosenZielTeam('rot')" style="background: #ff3b30; flex: 1;">🔴 Zu Team Rot</button>
+      <!-- Sektion: Spieler & Slots Verwaltung -->
+      <div class="card" style="padding: 15px; background: #121216; border: 1px solid #27272a; border-radius: 12px; display: flex; flex-direction: column; gap: 10px;">
+        <div style="font-size: 13px; font-weight: bold; color: #a855f7; display: flex; justify-content: space-between; align-items: center;">
+          <span>👥 Spieler & Slots (Auslosung & Fokus)</span>
+          <span style="font-size: 10px; color: #71717a;">Max. 2 pro Team</span>
+        </div>
+        <div id="admin-slots-list" style="display: flex; flex-direction: column; gap: 6px; max-height: 300px; overflow-y: auto; padding-right: 4px;">
+          <!-- Wird dynamisch befüllt -->
         </div>
       </div>
 
     </div>
 
-    <!-- SPALTE 3: EINSTELLUNGEN, NAMEN & LIVE TEXT-LOG -->
-    <div class="column">
-      
-      <!-- Team-Namen & Spieleranzahl -->
-      <div class="card">
-        <h2>👥 Team & Spieler</h2>
-        <div style="display: flex; gap: 6px; margin-bottom: 8px;">
-          <div style="flex: 1;"><label style="color: #0070f3;">Name Blau:</label><input type="text" id="team-blau-name-in" value="Team Blau" onchange="updateTeamNames()" style="width: 100%; border-color: #0070f3;"></div>
-          <div style="flex: 1;"><label style="color: #ff3b30;">Name Rot:</label><input type="text" id="team-rot-name-in" value="Team Rot" onchange="updateTeamNames()" style="width: 100%; border-color: #ff3b30;"></div>
-        </div>
-
-        <label>Aktive Spieleranzahl:</label>
-        <select id="active-player-count" onchange="speichereTeams()" style="width: 100%; margin-bottom: 10px;">
-          <option value="4">4 Spieler (2 vs 2)</option>
-          <option value="6" selected>6 Spieler (3 vs 3)</option>
-          <option value="8">8 Spieler (4 vs 4)</option>
-        </select>
-
-        <label>Spielernamen:</label>
-        <div class="name-grid">
-          <div class="name-row"><label>P1:</label><input type="text" id="in-player_1" onchange="updateName('player_1')"></div>
-          <div class="name-row"><label>P2:</label><input type="text" id="in-player_2" onchange="updateName('player_2')"></div>
-          <div class="name-row"><label>P3:</label><input type="text" id="in-player_3" onchange="updateName('player_3')"></div>
-          <div class="name-row"><label>P4:</label><input type="text" id="in-player_4" onchange="updateName('player_4')"></div>
-          <div class="name-row"><label>P5:</label><input type="text" id="in-player_5" onchange="updateName('player_5')"></div>
-          <div class="name-row"><label>P6:</label><input type="text" id="in-player_6" onchange="updateName('player_6')"></div>
-          <div class="name-row"><label>P7:</label><input type="text" id="in-player_7" onchange="updateName('player_7')"></div>
-          <div class="name-row"><label>P8:</label><input type="text" id="in-player_8" onchange="updateName('player_8')"></div>
-        </div>
+   <!-- UNTERER BEREICH: LIVE-TEAM-CHATS NEBENEINANDER -->
+<div class="card" style="padding: 15px; background: #121216; border: 1px solid #27272a; border-radius: 12px;">
+  <div style="font-size: 13px; font-weight: bold; color: #38bdf8; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+    <span>💬 Live Team-Chat Monitore</span>
+    <div style="display: flex; align-items: center; gap: 6px;">
+      <span style="font-size: 11px; color: #a1a1aa;">Dein Name:</span>
+      <input type="text" id="admin-chat-sender-name" value="Elmo" style="background: #09090b; border: 1px solid #27272a; color: #f43f5e; font-weight: bold; padding: 3px 8px; border-radius: 4px; font-size: 11px; width: 80px; text-align: center;">
+    </div>
+  </div>
+  
+  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
+    
+    <!-- Blau -->
+    <div style="background: #18181b; border: 1px solid #38bdf840; border-radius: 8px; padding: 10px; display: flex; flex-direction: column; height: 260px;">
+      <div style="font-size: 11px; font-weight: bold; color: #60a5fa; margin-bottom: 6px;">🔵 Team Blau</div>
+      <div id="chat-messages-blau" style="background: #09090b; border: 1px solid #27272a; border-radius: 4px; padding: 8px; flex-grow: 1; overflow-y: auto; font-size: 11px; display: flex; flex-direction: column; gap: 4px; margin-bottom: 6px;"></div>
+      <div style="display: flex; gap: 4px;">
+        <input type="text" id="chat-input-blau" placeholder="Als Elmo schreiben..." onkeydown="if(event.key==='Enter') AdminPanel.sendAdminChat('blau')" style="flex-grow: 1; background: #09090b; border: 1px solid #27272a; color: white; padding: 6px; border-radius: 4px; font-size: 11px;">
+        <button onclick="AdminPanel.sendAdminChat('blau')" style="background: #2563eb; border: none; color: white; padding: 6px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: bold;">Senden</button>
       </div>
+    </div>
 
-      <!-- Live Buzzer / Text Log -->
-      <div class="card">
-        <h2>🚨 Live Buzzer / Text Log</h2>
-        <div id="buzzer-log-container" class="buzzer-log-box">
-          <div style="color: #6b7280; text-align: center; margin: auto;">Warte auf Eingaben...</div>
-        </div>
+    <!-- Rot -->
+    <div style="background: #18181b; border: 1px solid #ef444440; border-radius: 8px; padding: 10px; display: flex; flex-direction: column; height: 260px;">
+      <div style="font-size: 11px; font-weight: bold; color: #f87171; margin-bottom: 6px;">🔴 Team Rot</div>
+      <div id="chat-messages-rot" style="background: #09090b; border: 1px solid #27272a; border-radius: 4px; padding: 8px; flex-grow: 1; overflow-y: auto; font-size: 11px; display: flex; flex-direction: column; gap: 4px; margin-bottom: 6px;"></div>
+      <div style="display: flex; gap: 4px;">
+        <input type="text" id="chat-input-rot" placeholder="Als Elmo schreiben..." onkeydown="if(event.key==='Enter') AdminPanel.sendAdminChat('rot')" style="flex-grow: 1; background: #09090b; border: 1px solid #27272a; color: white; padding: 6px; border-radius: 4px; font-size: 11px;">
+        <button onclick="AdminPanel.sendAdminChat('rot')" style="background: #2563eb; border: none; color: white; padding: 6px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: bold;">Senden</button>
       </div>
+    </div>
 
+    <!-- Grün -->
+    <div style="background: #18181b; border: 1px solid #22c55e40; border-radius: 8px; padding: 10px; display: flex; flex-direction: column; height: 260px;">
+      <div style="font-size: 11px; font-weight: bold; color: #4ade80; margin-bottom: 6px;">🟢 Team Grün</div>
+      <div id="chat-messages-gruen" style="background: #09090b; border: 1px solid #27272a; border-radius: 4px; padding: 8px; flex-grow: 1; overflow-y: auto; font-size: 11px; display: flex; flex-direction: column; gap: 4px; margin-bottom: 6px;"></div>
+      <div style="display: flex; gap: 4px;">
+        <input type="text" id="chat-input-gruen" placeholder="Als Elmo schreiben..." onkeydown="if(event.key==='Enter') AdminPanel.sendAdminChat('gruen')" style="flex-grow: 1; background: #09090b; border: 1px solid #27272a; color: white; padding: 6px; border-radius: 4px; font-size: 11px;">
+        <button onclick="AdminPanel.sendAdminChat('gruen')" style="background: #2563eb; border: none; color: white; padding: 6px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: bold;">Senden</button>
+      </div>
+    </div>
+
+    <!-- Gelb -->
+    <div style="background: #18181b; border: 1px solid #eab30840; border-radius: 8px; padding: 10px; display: flex; flex-direction: column; height: 260px;">
+      <div style="font-size: 11px; font-weight: bold; color: #facc15; margin-bottom: 6px;">🟡 Team Gelb</div>
+      <div id="chat-messages-gelb" style="background: #09090b; border: 1px solid #27272a; border-radius: 4px; padding: 8px; flex-grow: 1; overflow-y: auto; font-size: 11px; display: flex; flex-direction: column; gap: 4px; margin-bottom: 6px;"></div>
+      <div style="display: flex; gap: 4px;">
+        <input type="text" id="chat-input-gelb" placeholder="Als Elmo schreiben..." onkeydown="if(event.key==='Enter') AdminPanel.sendAdminChat('gelb')" style="flex-grow: 1; background: #09090b; border: 1px solid #27272a; color: white; padding: 6px; border-radius: 4px; font-size: 11px;">
+        <button onclick="AdminPanel.sendAdminChat('gelb')" style="background: #2563eb; border: none; color: white; padding: 6px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: bold;">Senden</button>
+      </div>
     </div>
 
   </div>
-
-  <script>
-    const supabaseClient = supabase.createClient(SUPABASE_CONFIG.URL, SUPABASE_CONFIG.KEY);
-    const channel = supabaseClient.channel('game-channel', { config: { broadcast: { self: true } } });
-    channel.subscribe();
-
-    let aktuellerFokusSlot = null;
-
-    async function updateTeamNames() {
-      const blau = document.getElementById('team-blau-name-in').value || 'Team Blau';
-      const rot = document.getElementById('team-rot-name-in').value || 'Team Rot';
-      await channel.send({ type: 'broadcast', event: 'update_team_names', payload: { nameBlau: blau, nameRot: rot } });
-    }
-
-    async function fokussiereSpieler(slotId) {
-      aktuellerFokusSlot = slotId;
-      document.getElementById('focused-player-select').value = slotId;
-      await channel.send({ type: 'broadcast', event: 'focus_player', payload: { slotId: slotId } });
-    }
-
-    function fokussiereAusgewaehlten() {
-      fokussiereSpieler(document.getElementById('focused-player-select').value);
-    }
-
-    async function fokusZuruecksetzen() {
-      aktuellerFokusSlot = null;
-      await channel.send({ type: 'broadcast', event: 'focus_player', payload: { slotId: null } });
-    }
-
-    async function auslosenZielTeam(teamColor) {
-      const slot = aktuellerFokusSlot || document.getElementById('focused-player-select').value;
-      await channel.send({ type: 'broadcast', event: 'assign_team_animated', payload: { slotId: slot, team: teamColor } });
-    }
-
-    async function ladeNamen() {
-      const { data } = await supabaseClient.from('player_slots').select('*');
-      if (data) {
-        data.forEach(row => {
-          const input = document.getElementById(`in-${row.slot_id}`);
-          if (input && document.activeElement !== input) input.value = row.spieler_name;
-
-          // Dropdown Namen in Echtzeit aktualisieren
-          const selectOpt = document.querySelector(`#focused-player-select option[value="${row.slot_id}"]`);
-          if (selectOpt) selectOpt.innerText = `${row.slot_id} (${row.spieler_name})`;
-        });
-      }
-    }
-
-    async function updateName(slotId) {
-      const val = document.getElementById(`in-${slotId}`).value;
-      await supabaseClient.from('player_slots').update({ spieler_name: val }).eq('slot_id', slotId);
-    }
-
-    async function speichereTeams() {
-      const activeCount = parseInt(document.getElementById('active-player-count').value);
-      await channel.send({ type: 'broadcast', event: 'update_teams', payload: { activeCount } });
-    }
-
-    async function spielModusWechseln() {
-      const mode = document.getElementById('game-mode-select').value;
-      document.getElementById('drawing-settings').style.display = (mode === 'drawing') ? 'block' : 'none';
-      
-      // Quiz-Fragen Steuerung nur im "normal"-Modus anzeigen
-      document.getElementById('normal-quiz-controls').style.display = (mode === 'normal') ? 'block' : 'none';
-
-      await channel.send({ type: 'broadcast', event: 'switch_game', payload: { game: mode } });
-    }
-
-    async function updateDrawingConfig() {
-      const painter = document.getElementById('draw-role-p1').value;
-      const word = document.getElementById('draw-secret-word').value;
-      await channel.send({ type: 'broadcast', event: 'switch_game', payload: { game: 'drawing', painter, word } });
-    }
-
-    async function sendeFrage(text) {
-      await resetBuzzer();
-      await supabaseClient.from('game_state').update({ aktuelle_frage: text }).eq('id', 1);
-    }
-
-    async function resetBuzzer() {
-      await supabaseClient.from('buzzer_log').delete().gte('created_at', '2000-01-01T00:00:00Z');
-      document.getElementById('buzzer-log-container').innerHTML = '<div style="color: #6b7280; text-align: center; margin: auto;">Warte auf Eingaben...</div>';
-    }
-
-    supabaseClient.channel('admin-channel')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'player_slots' }, () => ladeNamen())
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'buzzer_log' }, () => ladeBuzzerLog())
-      .subscribe();
-
-    async function ladeBuzzerLog() {
-      const { data } = await supabaseClient.from('buzzer_log').select('*').order('created_at', { ascending: true });
-      const container = document.getElementById('buzzer-log-container');
-      if (!data || data.length === 0) {
-        container.innerHTML = '<div style="color: #6b7280; text-align: center; margin: auto;">Warte auf Eingaben...</div>';
-        return;
-      }
-      container.innerHTML = data.map((item, idx) => {
-        const timeStr = new Date(item.created_at).toLocaleTimeString();
-        return `<div class="buzzer-log-item ${idx === 0 ? 'rank-1' : ''}">
-                  <div><b>${item.spieler_name}</b></div>
-                  <div style="font-size: 10px; color: #9ca3af; margin-top: 2px;">${timeStr}</div>
-                </div>`;
-      }).join('');
-      container.scrollTop = container.scrollHeight;
-    }
-
-    window.addEventListener('DOMContentLoaded', () => { ladeNamen(); speichereTeams(); updateTeamNames(); spielModusWechseln(); });
-  </script>
+</div>
 </body>
 </html>
