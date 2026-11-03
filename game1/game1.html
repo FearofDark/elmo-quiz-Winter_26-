@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Wavelength - Spieler</title>
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body style="background: transparent; margin: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; font-family: sans-serif; color: white; box-sizing: border-box;">
+  
+  <!-- Hauptcontainer (Perfekt zentriert) -->
+  <div style="position: relative; width: 100%; max-width: 750px; background: linear-gradient(145deg, #121216 0%, #09090b 100%); border: 2px solid #27272a; border-radius: 20px; padding: 35px; box-shadow: 0 20px 40px rgba(0,0,0,0.7), 0 0 15px rgba(56, 189, 248, 0.05); display: flex; flex-direction: column; gap: 24px; margin: auto;">
+    
+    <!-- Punkte oben rechts -->
+    <div id="g1-container-points" style="position: absolute; top: 24px; right: 24px; display: flex; gap: 8px; z-index: 10;"></div>
+
+    <!-- Runden-Badge links -->
+    <div style="display: flex; justify-content: flex-start; align-items: center; padding-right: 140px;">
+      <span id="g1-round-badge" style="font-size: 13px; color: #a1a1aa; font-weight: bold; text-transform: uppercase; letter-spacing: 1.5px;">Bereit</span>
+    </div>
+
+    <!-- Kategorie-Header -->
+    <div id="g1-cat-title" style="font-size: 30px; font-weight: bold; color: white; text-align: center; margin-top: -5px; border-bottom: 2px solid #27272a; padding-bottom: 16px; letter-spacing: 0.5px;">
+      Wavelength </div>
+
+    <!-- Dynamische Spiel-Bühne -->
+    <div id="g1-stage" style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%;"></div>
+
+  </div>
+
+  <!-- Supabase Client Initialisierung -->
+  <script>
+    const SUPABASE_URL = 'DEINE_SUPABASE_URL';
+    const SUPABASE_ANON_KEY = 'DEIN_SUPABASE_ANON_KEY';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const MY_SLOT = parseInt(localStorage.getItem('my_slot_id')) || 1;
+  </script>
+
+  <!-- Einbindung der Spieler-Logik -->
+  <script src="game1.js"></script>
+</body>
+</html>

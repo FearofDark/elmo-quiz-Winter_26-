@@ -18,14 +18,16 @@ const AdminPanel = {
       const nameInput = document.getElementById(`team-name-${t}`);
       if (nameInput && data[`team_${t}_name`]) nameInput.value = data[`team_${t}_name`];
       const scoreInput = document.getElementById(`input-score-${t}`);
-      if (scoreInput) scoreInput.value = data[`punkte_gesamt_${t}`] || 0;
+      if (scoreInput) scoreInput.value = data[`punkte_gesamt_${t}`] ?? 0;
     });
 
     const modeSelect = document.getElementById('admin-game-mode');
-    if (modeSelect && data.spiel_modus) modeSelect.value = data.spiel_modus;
+    if (modeSelect && data.spiel_modus) {
+      modeSelect.value = data.spiel_modus;
+      this.loadAdminGameControls(data.spiel_modus);
+    }
   },
 
-// 1. In der loadPlayerSlots() Methode: Den "❌ Neutral"-Button ergänzen
   async loadPlayerSlots() {
     const container = document.getElementById('admin-slots-list');
     if (!container) return;
@@ -58,28 +60,10 @@ const AdminPanel = {
 
           <button onclick="AdminPanel.assignTeamDirectly('${slot.slot_id}')" style="background: #16a34a; border: none; color: white; padding: 3px 6px; font-size: 10px; border-radius: 4px; cursor: pointer; font-weight: bold;">Zuweisen</button>
           <button onclick="AdminPanel.triggerRainbowForSlot('${slot.slot_id}')" style="background: #ca8a04; border: none; color: white; padding: 3px 6px; font-size: 10px; border-radius: 4px; cursor: pointer;">🌈 Rainbow</button>
-          
-          <!-- NEU: DIESER BUTTON SETZT DEN SPIELER PER KLICK AUF NEUTRAL ZURÜCK -->
-          <button onclick="AdminPanel.resetPlayerToNeutral('${slot.slot_id}')" style="background: #27272a; border: 1px solid #3f3f46; color: #a1a1aa; padding: 3px 6px; font-size: 10px; border-radius: 4px; cursor: pointer;" title="Zurück in den Wartebereich">❌ Neutral</button>
+          <button onclick="AdminPanel.resetPlayerToNeutral('${slot.slot_id}')" style="background: #27272a; border: 1px solid #3f3f46; color: #a1a1aa; padding: 3px 6px; font-size: 10px; border-radius: 4px; cursor: pointer;">❌ Neutral</button>
         </div>
       </div>
     `).join('');
-  },
-
-  // 2. Neue Methode im AdminPanel-Objekt:
-  async resetPlayerToNeutral(slotId) {
-    // Live-Broadcast an alle Spieler schicken
-    await supabaseClient.channel('game-channel').send({
-      type: 'broadcast',
-      event: 'reset_player_team',
-      payload: { slotId: slotId }
-    });
-
-    // In der Datenbank das Team auf 'neutral' zurücksetzen
-    await supabaseClient.from('player_slots').update({ team: 'neutral' }).eq('slot_id', slotId);
-    
-    // Admin UI direkt aktualisieren
-    await this.loadPlayerSlots();
   },
 
   async updatePlayerName(slotId, newName) {
@@ -112,6 +96,39 @@ const AdminPanel = {
       event: 'switch_game',
       payload: { game: mode }
     });
+    this.loadAdminGameControls(mode);
+  },
+
+  // LÄDT DIE ADMIN-STEUERUNG DES WEILIGEN SPIELS DYNAMISCH
+  async loadAdminGameControls(gameMode) {
+    const controlsContainer = document.getElementById('admin-game-specific-controls');
+    if (!controlsContainer) return;
+
+    if (gameMode === 'lottery' || !gameMode) {
+      controlsContainer.innerHTML = `
+        <div style="font-size: 13px; font-weight: bold; color: #38bdf8;">📌 Auslosungs-Modus aktiv</div>
+        <div style="font-size: 11px; color: #a1a1aa;">Nutze die Spieler-Liste rechts für Kamera-Fokus und Team-Zuweisungen.</div>
+      `;
+      return;
+    }
+
+    try {
+      const response = await fetch(`${gameMode}/${gameMode}_admin.html`);
+      if (!response.ok) throw new Error("Admin-Steuerung für dieses Spiel nicht gefunden");
+      const htmlContent = await response.text();
+      controlsContainer.innerHTML = htmlContent;
+
+      const scriptId = `admin-script-${gameMode}`;
+      if (!document.getElementById(scriptId)) {
+        const script = document.createElement('script');
+        script.id = scriptId;
+        script.src = `${gameMode}/${gameMode}_admin.js`;
+        script.defer = true;
+        document.body.appendChild(script);
+      }
+    } catch (err) {
+      controlsContainer.innerHTML = `<div style="color: #ef4444; font-size: 11px;">Keine speziellen Regie-Controls für ${gameMode} gefunden.</div>`;
+    }
   },
 
   async focusPlayer(slotId) {
@@ -164,7 +181,7 @@ const AdminPanel = {
 
     const availableTeams = this.teams.filter(t => teamCounts[t] < 2);
     if (availableTeams.length === 0) {
-      alert("Alle Teams sind bereits voll (max. 2 Spieler)!");
+      alert("Alle Teams sind bereits voll!");
       return;
     }
 
@@ -182,21 +199,25 @@ const AdminPanel = {
     }, 2200);
   },
 
+  async resetPlayerToNeutral(slotId) {
+    await supabaseClient.channel('game-channel').send({
+      type: 'broadcast',
+      event: 'reset_player_team',
+      payload: { slotId: slotId }
+    });
+
+    await supabaseClient.from('player_slots').update({ team: 'neutral' }).eq('slot_id', slotId);
+    await this.loadPlayerSlots();
+  },
+
   async initAllChatListeners() {
     this.teams.forEach(team => this.setupChatForTeam(team));
   },
-  async init() {
-    await this.loadGameState();
-    await this.loadPlayerSlots(); // Lädt die Slot-Liste und Team-Zuordnungen
-    this.initRealtimeListeners();
-    this.initAllChatListeners();
-  },
 
-async setupChatForTeam(team) {
+  async setupChatForTeam(team) {
     const container = document.getElementById(`chat-messages-${team}`);
     if (!container) return;
 
-    // 1. Nachrichten aus chat_messages abrufen
     const { data, error } = await supabaseClient
       .from('chat_messages')
       .select('*')
@@ -205,28 +226,22 @@ async setupChatForTeam(team) {
       .limit(40);
 
     if (error) {
-      console.error(`Fehler beim Laden des Chats für Team ${team}:`, error);
       container.innerHTML = `<div style="color: #ef4444; text-align: center;">Fehler beim Laden.</div>`;
       return;
     }
 
     if (data && data.length > 0) {
-      container.innerHTML = data.map(m => {
-        const name = m.sender || 'Spieler';
-        const isElmo = name === 'Elmo';
-        return `
-          <div style="word-break: break-word;">
-            <strong style="color: ${isElmo ? '#f43f5e' : '#38bdf8'};">${name}:</strong> 
-            <span style="color: #f4f4f5;">${m.message}</span>
-          </div>
-        `;
-      }).join('');
+      container.innerHTML = data.map(m => `
+        <div style="word-break: break-word;">
+          <strong style="color: ${m.sender === 'Elmo' ? '#f43f5e' : '#38bdf8'};">${m.sender || 'Spieler'}:</strong> 
+          <span style="color: #f4f4f5;">${m.message}</span>
+        </div>
+      `).join('');
       container.scrollTop = container.scrollHeight;
     } else {
       container.innerHTML = `<div style="color: #71717a; text-align: center; margin-top: 10px;">Keine Nachrichten vorhanden.</div>`;
     }
 
-    // 2. Realtime-Subscription für neue Nachrichten
     supabaseClient
       .channel(`admin-live-chat-${team}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages', filter: `team=eq.${team}` }, payload => {
@@ -234,11 +249,9 @@ async setupChatForTeam(team) {
         if (container.innerHTML.includes('Keine Nachrichten') || container.innerHTML.includes('Fehler')) {
           container.innerHTML = '';
         }
-        const name = m.sender || 'Spieler';
-        const isElmo = name === 'Elmo';
         container.innerHTML += `
           <div style="word-break: break-word;">
-            <strong style="color: ${isElmo ? '#f43f5e' : '#38bdf8'};">${name}:</strong> 
+            <strong style="color: ${m.sender === 'Elmo' ? '#f43f5e' : '#38bdf8'};">${m.sender || 'Spieler'}:</strong> 
             <span style="color: #f4f4f5;">${m.message}</span>
           </div>
         `;
@@ -247,7 +260,6 @@ async setupChatForTeam(team) {
       .subscribe();
   },
 
-  // ALS ADMIN (ELMO) IN DEN CHAT SCHREIBEN
   async sendAdminChat(team) {
     const input = document.getElementById(`chat-input-${team}`);
     const senderNameInput = document.getElementById('admin-chat-sender-name');
@@ -255,22 +267,17 @@ async setupChatForTeam(team) {
     if (!input || !input.value.trim()) return;
 
     const messageText = input.value.trim();
-    const senderName = (senderNameInput && senderNameInput.value.trim()) ? senderNameInput.value.trim() : 'Elmo';
+    const senderName = senderNameInput?.value.trim() || 'Elmo';
 
     input.value = '';
 
-    // Korrigierte Payload mit der Spalte 'sender'
-    const { error } = await supabaseClient.from('chat_messages').insert({
+    await supabaseClient.from('chat_messages').insert({
       team: team,
       sender: senderName,
       message: messageText
     });
-
-    if (error) {
-      console.error("Fehler beim Senden der Chat-Nachricht:", error);
-      alert("Nachricht konnte nicht gesendet werden: " + error.message);
-    }
   },
+
   initRealtimeListeners() {
     supabaseClient.channel('admin-db-sync')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'player_slots' }, () => {

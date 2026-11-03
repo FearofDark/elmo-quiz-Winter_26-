@@ -1,6 +1,8 @@
 const supabaseClient = supabase.createClient(SUPABASE_CONFIG.URL, SUPABASE_CONFIG.KEY);
 
 let MY_SLOT = localStorage.getItem('quiz_studio_my_slot') || null;
+let aktuellesGame = 'lottery';
+let aktuellerFokusSlotId = null;
 
 window.addEventListener('DOMContentLoaded', () => {
   if (!MY_SLOT) {
@@ -20,10 +22,7 @@ async function savePlayerSlot() {
   if (!modalSelect) return;
   
   const selectedSlot = modalSelect.value;
-  if (!selectedSlot) {
-    alert("Bitte wähle deinen Slot aus!");
-    return;
-  }
+  if (!selectedSlot) return;
 
   localStorage.setItem('quiz_studio_my_slot', selectedSlot);
   MY_SLOT = selectedSlot;
@@ -61,23 +60,21 @@ function closeSelfElmoPopup() {
   }
 }
 
-let aktuellesGame = 'lottery';
-let aktuellerFokusSlotId = null;
-
 function updateUIActiveGameHeader(mode) {
   const badge = document.getElementById('active-game-title-badge');
-  const items = {
+  const titles = {
     lottery: "Auslosung",
-    game_1: "🎮 Spiel 1"
+    game1: "🎮 Spiel 1",
+    game2: "🎮 Spiel 2",
+    game3: "🎮 Spiel 3",
+    game4: "🎮 Spiel 4",
+    game5: "🎮 Spiel 5",
+    game6: "🎮 Spiel 6"
   };
-
-  if (badge) {
-    badge.innerText = items[mode] || "Auslosung";
-  }
+  if (badge) badge.innerText = titles[mode] || mode.toUpperCase();
 }
 
 async function ladeDatenbankZustand() {
-  // 1. Spiel-Zustand (Punkte, Modus, Team-Namen) laden
   const { data: state, error } = await supabaseClient.from('game_state').select('*').eq('id', 1).maybeSingle();
   if (!error && state) {
     const teams = ['blau', 'rot', 'gruen', 'gelb'];
@@ -85,12 +82,12 @@ async function ladeDatenbankZustand() {
       const nameEl = document.getElementById(`header-name-${t}`);
       if (nameEl && state[`team_${t}_name`]) {
         const emoji = t === 'blau' ? '🔵' : t === 'rot' ? '🔴' : t === 'gruen' ? '🟢' : '🟡';
-        nameEl.innerText = `${emoji}  ${state[`team_${t}_name`].toUpperCase()}`;
+        nameEl.innerText = `${emoji} TEAM ${state[`team_${t}_name`].toUpperCase()}`;
       }
 
       const gesamtEl = document.getElementById(`punkte-gesamt-${t}`);
       if (gesamtEl) {
-        gesamtEl.innerText = (state[`punkte_gesamt_${t}`] !== undefined && state[`punkte_gesamt_${t}`] !== null) ? state[`punkte_gesamt_${t}`] : 0;
+        gesamtEl.innerText = state[`punkte_gesamt_${t}`] ?? 0;
       }
     });
 
@@ -99,16 +96,13 @@ async function ladeDatenbankZustand() {
     }
   }
 
-  // 2. WICHTIG: Alle Spieler-Slots aus der Datenbank laden und UI korrekt setzen!
-  const { data: slots, error: slotError } = await supabaseClient.from('player_slots').select('*');
-  if (!slotError && slots) {
+  const { data: slots } = await supabaseClient.from('player_slots').select('*');
+  if (slots) {
     slots.forEach(slot => {
-      // Setzt jeden Spieler in das korrekte Team (oder in den neutralen Wartebereich)
       aktualisiereSpielerSlotUI(slot.slot_id, slot.spieler_name, slot.team);
     });
   }
 }
-
 
 function initGlobalGameStateListener() {
   supabaseClient
@@ -119,14 +113,14 @@ function initGlobalGameStateListener() {
         const teams = ['blau', 'rot', 'gruen', 'gelb'];
         teams.forEach(t => {
           const gesamtEl = document.getElementById(`punkte-gesamt-${t}`);
-          if (gesamtEl && newData[`punkte_gesamt_${t}`] !== undefined && newData[`punkte_gesamt_${t}`] !== null) {
+          if (gesamtEl && newData[`punkte_gesamt_${t}`] !== undefined) {
             gesamtEl.innerText = newData[`punkte_gesamt_${t}`];
           }
 
           const nameEl = document.getElementById(`header-name-${t}`);
           if (nameEl && newData[`team_${t}_name`]) {
             const emoji = t === 'blau' ? '🔵' : t === 'rot' ? '🔴' : t === 'gruen' ? '🟢' : '🟡';
-            nameEl.innerText = `${emoji}${newData[`team_${t}_name`].toUpperCase()}`;
+            nameEl.innerText = `${emoji} TEAM ${newData[`team_${t}_name`].toUpperCase()}`;
           }
         });
 
@@ -142,15 +136,12 @@ function aktualisiereSpielerSlotUI(slotId, name, team) {
   const box = document.getElementById(`box-${slotId}`);
   const titleEl = document.getElementById(`title-${slotId}`);
 
-  if (titleEl && name) {
-    titleEl.innerText = name;
-  }
+  if (titleEl && name) titleEl.innerText = name;
 
   if (box) {
     box.classList.remove('team-blau', 'team-rot', 'team-gruen', 'team-gelb');
-
     let targetContainerId = 'container-neutral';
-    
+
     if (team && team !== 'neutral') {
       box.classList.add(`team-${team}`);
       targetContainerId = `container-${team}`;
@@ -165,41 +156,46 @@ function aktualisiereSpielerSlotUI(slotId, name, team) {
   const neutralContainer = document.getElementById('container-neutral');
   const waitingAreaCard = document.getElementById('neutral-waiting-area');
   if (neutralContainer && waitingAreaCard) {
-    if (neutralContainer.children.length === 0) {
-      waitingAreaCard.style.display = 'none';
-    } else {
-      waitingAreaCard.style.display = 'block';
-    }
+    waitingAreaCard.style.display = neutralContainer.children.length === 0 ? 'none' : 'block';
   }
 }
 
-function buehneRendern(gameMode) {
+// DYNAMISCHER SPIELE-LOADER FÜR DIE BÜHNE
+async function buehneRendern(gameMode) {
   const stage = document.getElementById('dynamic-game-stage');
-
   aktuellesGame = gameMode;
   updateUIActiveGameHeader(gameMode);
 
-  if (aktuellerFokusSlotId) return;
+  if (aktuellerFokusSlotId || !stage) return;
 
-  if (stage) {
-    if (gameMode === 'game_1') {
-      // PROTOTOYP / PLATZHALTER FÜR SPIEL 1
-      stage.innerHTML = `
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; gap: 10px;">
-          <div style="font-size: 32px; font-weight: bold; color: #38bdf8;">🎮 SPIEL 1</div>
-          <div style="font-size: 16px; color: #a1a1aa;">Das erste Spiel läuft! HIER SPIEL 1 LOGIK EINBAUEN.</div>
-        </div>
-      `;
-    } else {
-      // STANDARD AUSLOSUNGSMODUS
-      stage.innerHTML = `
-        <div class="lottery-stage-box" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; gap: 10px;">
-          <div class="lottery-live-badge">● LIVE</div>
-          <div class="lottery-title" style="font-size: 28px; font-weight: bold; color: #f4f4f5;">Warte auf Auslosung...</div>
-          <div class="lottery-subtitle" style="font-size: 14px; color: #71717a;">Gleich geht es los!</div>
-        </div>
-      `;
+  if (gameMode === 'lottery' || !gameMode) {
+    stage.innerHTML = `
+      <div class="lottery-stage-box" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; gap: 10px;">
+        <div class="lottery-live-badge">● LIVE</div>
+        <div class="lottery-title" style="font-size: 28px; font-weight: bold; color: #f4f4f5;">Warte auf Auslosung...</div>
+        <div class="lottery-subtitle" style="font-size: 14px; color: #71717a;">Gleich geht es los!</div>
+      </div>
+    `;
+    return;
+  }
+
+  // Lade HTML & JS des entsprechenden Spiels (game1 bis game6)
+  try {
+    const response = await fetch(`${gameMode}/${gameMode}.html`);
+    if (!response.ok) throw new Error("Spiel-HTML nicht gefunden");
+    const htmlContent = await response.text();
+    stage.innerHTML = htmlContent;
+
+    const scriptId = `script-${gameMode}`;
+    if (!document.getElementById(scriptId)) {
+      const script = document.createElement('script');
+      script.id = scriptId;
+      script.src = `${gameMode}/${gameMode}.js`;
+      script.defer = true;
+      document.body.appendChild(script);
     }
+  } catch (err) {
+    stage.innerHTML = `<div style="color: #ef4444; padding: 20px; text-align: center;">Fehler beim Laden von ${gameMode}: ${err.message}</div>`;
   }
 }
 
@@ -207,11 +203,10 @@ const channel = supabaseClient.channel('game-channel', { config: { broadcast: { 
 
 channel
   .on('broadcast', { event: 'toggle_elmo_popup' }, payload => {
-    if (payload.payload.show) {
-      openSelfElmoPopup();
-    } else {
-      closeSelfElmoPopup();
-    }
+    payload.payload.show ? openSelfElmoPopup() : closeSelfElmoPopup();
+  })
+  .on('broadcast', { event: 'reset_player_team' }, payload => {
+    aktualisiereSpielerSlotUI(payload.payload.slotId, null, 'neutral');
   })
   .on('broadcast', { event: 'focus_player' }, payload => {
     const { slotId } = payload.payload;
@@ -232,7 +227,6 @@ channel
     if (slotId) {
       aktuellerFokusSlotId = slotId;
       const origBox = document.getElementById(`box-${slotId}`);
-
       let currentTeamClass = 'fokus-team-neutral';
       if (origBox) {
         if (origBox.classList.contains('team-blau')) currentTeamClass = 'fokus-team-blau';
@@ -241,17 +235,14 @@ channel
         else if (origBox.classList.contains('team-gelb')) currentTeamClass = 'fokus-team-gelb';
 
         origBox.classList.add('in-focus-stage');
-        const titleText = document.getElementById(`title-${slotId}`) ? document.getElementById(`title-${slotId}`).innerText : slotId;
-        origBox.innerHTML = `
-          <div class="cam-title"><span>${titleText}</span></div>
-          <div class="cam-placeholder"></div>
-        `;
+        const titleText = document.getElementById(`title-${slotId}`)?.innerText || slotId;
+        origBox.innerHTML = `<div class="cam-title"><span>${titleText}</span></div><div class="cam-placeholder"></div>`;
       }
 
       if (stage) {
         stage.innerHTML = `
           <div class="fokus-stage-box" style="padding: 10px; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-            <div class="fokus-cam-wrapper ${currentTeamClass}" id="fokus-wrapper" style="width: 100%; max-width: 900px; height: 520px; border-radius: 16px; overflow: hidden; transition: all 0.3s ease;">
+            <div class="fokus-cam-wrapper ${currentTeamClass}" id="fokus-wrapper" style="width: 100%; max-width: 900px; height: 520px; border-radius: 16px; overflow: hidden;">
               <iframe src="https://vdo.ninja/?view=${slotId}&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay" style="width: 100%; height: 100%;"></iframe>
             </div>
           </div>
@@ -275,37 +266,15 @@ channel
   })
   .on('broadcast', { event: 'assign_team_animated' }, payload => {
     const { slotId, team } = payload.payload;
-    const wrapper = document.getElementById('fokus-wrapper');
-    if (wrapper) wrapper.className = `fokus-cam-wrapper flash-${team}`;
-
     setTimeout(() => {
       aktualisiereSpielerSlotUI(slotId, null, team);
     }, 600);
   })
   .on('broadcast', { event: 'start_rainbow_lottery' }, async payload => {
     const { slotId, winnerTeam } = payload.payload;
-    const stage = document.getElementById('dynamic-game-stage');
-
-    if (stage && !document.getElementById('fokus-wrapper')) {
-      stage.innerHTML = `
-        <div class="fokus-stage-box" style="padding: 10px; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-          <div class="fokus-cam-wrapper fokus-team-neutral" id="fokus-wrapper" style="width: 100%; max-width: 900px; height: 520px; border-radius: 16px; overflow: hidden; transition: all 0.3s ease;">
-            <iframe src="https://vdo.ninja/?view=${slotId}&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay" style="width: 100%; height: 100%;"></iframe>
-          </div>
-        </div>
-      `;
-    }
-
-    const wrapper = document.getElementById('fokus-wrapper');
-    if (wrapper) {
-      wrapper.className = 'fokus-cam-wrapper rainbow-spinning';
-      await new Promise(resolve => setTimeout(resolve, 2500));
-
-      wrapper.className = `fokus-cam-wrapper fokus-team-${winnerTeam}`;
-      setTimeout(() => {
-        aktualisiereSpielerSlotUI(slotId, null, winnerTeam);
-      }, 300);
-    }
+    setTimeout(() => {
+      aktualisiereSpielerSlotUI(slotId, null, winnerTeam);
+    }, 2500);
   })
   .on('broadcast', { event: 'switch_game' }, payload => {
     buehneRendern(payload.payload.game);
@@ -314,26 +283,4 @@ channel
 
 supabaseClient.channel('db-channel')
   .on('postgres_changes', { event: '*', schema: 'public', table: 'player_slots' }, () => ladeDatenbankZustand())
-  .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'game_state' }, payload => {
-    const newData = payload.new;
-    if (newData) {
-      const teams = ['blau', 'rot', 'gruen', 'gelb'];
-      teams.forEach(t => {
-        const gesamtEl = document.getElementById(`punkte-gesamt-${t}`);
-        if (gesamtEl && newData[`punkte_gesamt_${t}`] !== undefined && newData[`punkte_gesamt_${t}`] !== null) {
-          gesamtEl.innerText = newData[`punkte_gesamt_${t}`];
-        }
-
-        const nameEl = document.getElementById(`header-name-${t}`);
-        if (nameEl && newData[`team_${t}_name`]) {
-          const emoji = t === 'blau' ? '🔵' : t === 'rot' ? '🔴' : t === 'gruen' ? '🟢' : '🟡';
-          nameEl.innerText = `${emoji} TEAM ${newData[`team_${t}_name`].toUpperCase()}`;
-        }
-      });
-
-      if (newData.spiel_modus && newData.spiel_modus !== aktuellesGame) {
-        buehneRendern(newData.spiel_modus);
-      }
-    }
-  })
   .subscribe();

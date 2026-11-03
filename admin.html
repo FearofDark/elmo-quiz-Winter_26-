@@ -17,12 +17,17 @@
     <!-- OBERER BEREICH: MODUS SWITCHER & PUNKTETABELLE -->
     <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 15px;">
       
-      <!-- Spiel Modus Switcher -->
+      <!-- Spiel Modus Switcher für alle 6 Spiele -->
       <div class="card" style="padding: 15px; background: #121216; border: 1px solid #27272a; border-radius: 12px; display: flex; flex-direction: column; gap: 10px;">
         <div style="font-size: 12px; font-weight: bold; color: #38bdf8;">🎮 Studio Spielmodus</div>
         <select id="admin-game-mode" onchange="AdminPanel.setGameMode(this.value)" style="background: #18181b; color: white; border: 1px solid #27272a; padding: 10px; border-radius: 6px; font-weight: bold;">
           <option value="lottery">Modus: 🎯 Auslosung / Standard</option>
-          <option value="game_1">Modus: 🎮 Spiel 1</option>
+          <option value="game1">Modus: 🎮 Spiel 1</option>
+          <option value="game2">Modus: 🎮 Spiel 2</option>
+          <option value="game3">Modus: 🎮 Spiel 3</option>
+          <option value="game4">Modus: 🎮 Spiel 4</option>
+          <option value="game5">Modus: 🎮 Spiel 5</option>
+          <option value="game6">Modus: 🎮 Spiel 6</option>
         </select>
         <div style="font-size: 11px; color: #71717a;">Wechselt den Modus live bei allen verbundenen Spielern.</div>
       </div>
@@ -77,19 +82,18 @@
 
     </div>
 
-    <!-- MITTLERER BEREICH: SPIEL 1 STEUERUNG & SPIELER-ÜBERSICHT -->
+    <!-- MITTLERER BEREICH: DYNAMISCHER ADMIN-SPIELBEREICH & SLOTS -->
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
 
-      <!-- Sektion: Studio-Bühnen-Panel für Spiel 1 -->
+      <!-- Sektion: Dynamisches Admin-Bühnen-Panel für geladene Spiele -->
       <div class="card" style="padding: 20px; background: #121216; border: 1px solid #27272a; border-radius: 12px; min-height: 320px; display: flex; flex-direction: column; gap: 15px;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-          <div style="font-size: 13px; font-weight: bold; color: #38bdf8;">🎬 Spiel 1 Steuerung</div>
+          <div style="font-size: 13px; font-weight: bold; color: #38bdf8;">🎬 Aktive Spiel-Steuerung</div>
           <button onclick="AdminPanel.unfocusPlayer()" style="background: #27272a; border: 1px solid #3f3f46; padding: 4px 10px; font-size: 11px; border-radius: 4px; color: white; cursor: pointer;">Fokus aufheben</button>
         </div>
         
         <div id="admin-game-specific-controls" style="background: #18181b; border: 2px dashed #27272a; border-radius: 8px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1; text-align: center; color: #71717a; gap: 8px;">
-          <div style="font-size: 13px; font-weight: bold; color: #38bdf8;">📌 Steuerung für Spiel 1</div>
-          <div style="font-size: 11px; color: #a1a1aa;">Hier kannst du die Regie-Bedienelemente für euer erstes Quiz-Spiel einbauen.</div>
+          <!-- Dynamischer Inhalt von gameX_admin.html -->
         </div>
       </div>
 
@@ -99,66 +103,67 @@
           <span>👥 Spieler & Slots (Auslosung & Fokus)</span>
           <span style="font-size: 10px; color: #71717a;">Max. 2 pro Team</span>
         </div>
-        <div id="admin-slots-list" style="display: flex; flex-direction: column; gap: 6px; max-height: 300px; overflow-y: auto; padding-right: 4px;">
-          <!-- Wird dynamisch befüllt -->
+        <div id="admin-slots-list" style="display: flex; flex-direction: column; gap: 6px; max-height: 300px; overflow-y: auto; padding-right: 4px;"></div>
+      </div>
+
+    </div>
+
+    <!-- UNTERER BEREICH: LIVE-TEAM-CHATS NEBENEINANDER -->
+    <div class="card" style="padding: 15px; background: #121216; border: 1px solid #27272a; border-radius: 12px;">
+      <div style="font-size: 13px; font-weight: bold; color: #38bdf8; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+        <span>💬 Live Team-Chat Monitore</span>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <span style="font-size: 11px; color: #a1a1aa;">Dein Name:</span>
+          <input type="text" id="admin-chat-sender-name" value="Elmo" style="background: #09090b; border: 1px solid #27272a; color: #f43f5e; font-weight: bold; padding: 3px 8px; border-radius: 4px; font-size: 11px; width: 80px; text-align: center;">
         </div>
       </div>
+      
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
+        
+        <!-- Blau -->
+        <div style="background: #18181b; border: 1px solid #38bdf840; border-radius: 8px; padding: 10px; display: flex; flex-direction: column; height: 260px;">
+          <div style="font-size: 11px; font-weight: bold; color: #60a5fa; margin-bottom: 6px;">🔵 Team Blau</div>
+          <div id="chat-messages-blau" style="background: #09090b; border: 1px solid #27272a; border-radius: 4px; padding: 8px; flex-grow: 1; overflow-y: auto; font-size: 11px; display: flex; flex-direction: column; gap: 4px; margin-bottom: 6px;"></div>
+          <div style="display: flex; gap: 4px;">
+            <input type="text" id="chat-input-blau" placeholder="Als Elmo schreiben..." onkeydown="if(event.key==='Enter') AdminPanel.sendAdminChat('blau')" style="flex-grow: 1; background: #09090b; border: 1px solid #27272a; color: white; padding: 6px; border-radius: 4px; font-size: 11px;">
+            <button onclick="AdminPanel.sendAdminChat('blau')" style="background: #2563eb; border: none; color: white; padding: 6px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: bold;">Senden</button>
+          </div>
+        </div>
 
-    </div>
+        <!-- Rot -->
+        <div style="background: #18181b; border: 1px solid #ef444440; border-radius: 8px; padding: 10px; display: flex; flex-direction: column; height: 260px;">
+          <div style="font-size: 11px; font-weight: bold; color: #f87171; margin-bottom: 6px;">🔴 Team Rot</div>
+          <div id="chat-messages-rot" style="background: #09090b; border: 1px solid #27272a; border-radius: 4px; padding: 8px; flex-grow: 1; overflow-y: auto; font-size: 11px; display: flex; flex-direction: column; gap: 4px; margin-bottom: 6px;"></div>
+          <div style="display: flex; gap: 4px;">
+            <input type="text" id="chat-input-rot" placeholder="Als Elmo schreiben..." onkeydown="if(event.key==='Enter') AdminPanel.sendAdminChat('rot')" style="flex-grow: 1; background: #09090b; border: 1px solid #27272a; color: white; padding: 6px; border-radius: 4px; font-size: 11px;">
+            <button onclick="AdminPanel.sendAdminChat('rot')" style="background: #2563eb; border: none; color: white; padding: 6px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: bold;">Senden</button>
+          </div>
+        </div>
 
-   <!-- UNTERER BEREICH: LIVE-TEAM-CHATS NEBENEINANDER -->
-<div class="card" style="padding: 15px; background: #121216; border: 1px solid #27272a; border-radius: 12px;">
-  <div style="font-size: 13px; font-weight: bold; color: #38bdf8; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
-    <span>💬 Live Team-Chat Monitore</span>
-    <div style="display: flex; align-items: center; gap: 6px;">
-      <span style="font-size: 11px; color: #a1a1aa;">Dein Name:</span>
-      <input type="text" id="admin-chat-sender-name" value="Elmo" style="background: #09090b; border: 1px solid #27272a; color: #f43f5e; font-weight: bold; padding: 3px 8px; border-radius: 4px; font-size: 11px; width: 80px; text-align: center;">
-    </div>
-  </div>
-  
-  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
-    
-    <!-- Blau -->
-    <div style="background: #18181b; border: 1px solid #38bdf840; border-radius: 8px; padding: 10px; display: flex; flex-direction: column; height: 260px;">
-      <div style="font-size: 11px; font-weight: bold; color: #60a5fa; margin-bottom: 6px;">🔵 Team Blau</div>
-      <div id="chat-messages-blau" style="background: #09090b; border: 1px solid #27272a; border-radius: 4px; padding: 8px; flex-grow: 1; overflow-y: auto; font-size: 11px; display: flex; flex-direction: column; gap: 4px; margin-bottom: 6px;"></div>
-      <div style="display: flex; gap: 4px;">
-        <input type="text" id="chat-input-blau" placeholder="Als Elmo schreiben..." onkeydown="if(event.key==='Enter') AdminPanel.sendAdminChat('blau')" style="flex-grow: 1; background: #09090b; border: 1px solid #27272a; color: white; padding: 6px; border-radius: 4px; font-size: 11px;">
-        <button onclick="AdminPanel.sendAdminChat('blau')" style="background: #2563eb; border: none; color: white; padding: 6px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: bold;">Senden</button>
-      </div>
-    </div>
+        <!-- Grün -->
+        <div style="background: #18181b; border: 1px solid #22c55e40; border-radius: 8px; padding: 10px; display: flex; flex-direction: column; height: 260px;">
+          <div style="font-size: 11px; font-weight: bold; color: #4ade80; margin-bottom: 6px;">🟢 Team Grün</div>
+          <div id="chat-messages-gruen" style="background: #09090b; border: 1px solid #27272a; border-radius: 4px; padding: 8px; flex-grow: 1; overflow-y: auto; font-size: 11px; display: flex; flex-direction: column; gap: 4px; margin-bottom: 6px;"></div>
+          <div style="display: flex; gap: 4px;">
+            <input type="text" id="chat-input-gruen" placeholder="Als Elmo schreiben..." onkeydown="if(event.key==='Enter') AdminPanel.sendAdminChat('gruen')" style="flex-grow: 1; background: #09090b; border: 1px solid #27272a; color: white; padding: 6px; border-radius: 4px; font-size: 11px;">
+            <button onclick="AdminPanel.sendAdminChat('gruen')" style="background: #2563eb; border: none; color: white; padding: 6px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: bold;">Senden</button>
+          </div>
+        </div>
 
-    <!-- Rot -->
-    <div style="background: #18181b; border: 1px solid #ef444440; border-radius: 8px; padding: 10px; display: flex; flex-direction: column; height: 260px;">
-      <div style="font-size: 11px; font-weight: bold; color: #f87171; margin-bottom: 6px;">🔴 Team Rot</div>
-      <div id="chat-messages-rot" style="background: #09090b; border: 1px solid #27272a; border-radius: 4px; padding: 8px; flex-grow: 1; overflow-y: auto; font-size: 11px; display: flex; flex-direction: column; gap: 4px; margin-bottom: 6px;"></div>
-      <div style="display: flex; gap: 4px;">
-        <input type="text" id="chat-input-rot" placeholder="Als Elmo schreiben..." onkeydown="if(event.key==='Enter') AdminPanel.sendAdminChat('rot')" style="flex-grow: 1; background: #09090b; border: 1px solid #27272a; color: white; padding: 6px; border-radius: 4px; font-size: 11px;">
-        <button onclick="AdminPanel.sendAdminChat('rot')" style="background: #2563eb; border: none; color: white; padding: 6px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: bold;">Senden</button>
-      </div>
-    </div>
+        <!-- Gelb -->
+        <div style="background: #18181b; border: 1px solid #eab30840; border-radius: 8px; padding: 10px; display: flex; flex-direction: column; height: 260px;">
+          <div style="font-size: 11px; font-weight: bold; color: #facc15; margin-bottom: 6px;">🟡 Team Gelb</div>
+          <div id="chat-messages-gelb" style="background: #09090b; border: 1px solid #27272a; border-radius: 4px; padding: 8px; flex-grow: 1; overflow-y: auto; font-size: 11px; display: flex; flex-direction: column; gap: 4px; margin-bottom: 6px;"></div>
+          <div style="display: flex; gap: 4px;">
+            <input type="text" id="chat-input-gelb" placeholder="Als Elmo schreiben..." onkeydown="if(event.key==='Enter') AdminPanel.sendAdminChat('gelb')" style="flex-grow: 1; background: #09090b; border: 1px solid #27272a; color: white; padding: 6px; border-radius: 4px; font-size: 11px;">
+            <button onclick="AdminPanel.sendAdminChat('gelb')" style="background: #2563eb; border: none; color: white; padding: 6px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: bold;">Senden</button>
+          </div>
+        </div>
 
-    <!-- Grün -->
-    <div style="background: #18181b; border: 1px solid #22c55e40; border-radius: 8px; padding: 10px; display: flex; flex-direction: column; height: 260px;">
-      <div style="font-size: 11px; font-weight: bold; color: #4ade80; margin-bottom: 6px;">🟢 Team Grün</div>
-      <div id="chat-messages-gruen" style="background: #09090b; border: 1px solid #27272a; border-radius: 4px; padding: 8px; flex-grow: 1; overflow-y: auto; font-size: 11px; display: flex; flex-direction: column; gap: 4px; margin-bottom: 6px;"></div>
-      <div style="display: flex; gap: 4px;">
-        <input type="text" id="chat-input-gruen" placeholder="Als Elmo schreiben..." onkeydown="if(event.key==='Enter') AdminPanel.sendAdminChat('gruen')" style="flex-grow: 1; background: #09090b; border: 1px solid #27272a; color: white; padding: 6px; border-radius: 4px; font-size: 11px;">
-        <button onclick="AdminPanel.sendAdminChat('gruen')" style="background: #2563eb; border: none; color: white; padding: 6px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: bold;">Senden</button>
-      </div>
-    </div>
-
-    <!-- Gelb -->
-    <div style="background: #18181b; border: 1px solid #eab30840; border-radius: 8px; padding: 10px; display: flex; flex-direction: column; height: 260px;">
-      <div style="font-size: 11px; font-weight: bold; color: #facc15; margin-bottom: 6px;">🟡 Team Gelb</div>
-      <div id="chat-messages-gelb" style="background: #09090b; border: 1px solid #27272a; border-radius: 4px; padding: 8px; flex-grow: 1; overflow-y: auto; font-size: 11px; display: flex; flex-direction: column; gap: 4px; margin-bottom: 6px;"></div>
-      <div style="display: flex; gap: 4px;">
-        <input type="text" id="chat-input-gelb" placeholder="Als Elmo schreiben..." onkeydown="if(event.key==='Enter') AdminPanel.sendAdminChat('gelb')" style="flex-grow: 1; background: #09090b; border: 1px solid #27272a; color: white; padding: 6px; border-radius: 4px; font-size: 11px;">
-        <button onclick="AdminPanel.sendAdminChat('gelb')" style="background: #2563eb; border: none; color: white; padding: 6px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: bold;">Senden</button>
       </div>
     </div>
 
   </div>
-</div>
+
 </body>
 </html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Wavelength Admin-Panel</title>
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body style="background: #09090b; color: white; font-family: sans-serif; padding: 20px; display: flex; flex-direction: column; gap: 20px;">
+
+  <h2>Wavelength - Admin-Steuerung</h2>
+
+  <!-- Status & Aktuelle Kategorie Anzeige -->
+  <div style="background: #18181b; padding: 15px; border-radius: 8px; border: 1px solid #27272a; display: flex; gap: 20px; align-items: center;">
+    <div>Status: <span id="g1-adm-status" style="font-weight: bold; color: #38bdf8;">NEUTRAL</span></div>
+    <div>Aktueller Begriff: <span id="g1-adm-cat" style="font-weight: bold; color: #facc15;">Neutral / Wartend</span></div>
+  </div>
+
+  <!-- Runden-Auswahl & Steuerung -->
+  <div style="background: #18181b; padding: 20px; border-radius: 8px; border: 1px solid #27272a; display: flex; flex-direction: column; gap: 15px;">
+    
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <label style="font-size: 14px; color: #a1a1aa; font-weight: bold;">Runde auswählen:</label>
+      <select id="g1-round-select" onchange="Game1Admin.changeRound(this.value)" style="background: #18181b; color: white; padding: 12px; border-radius: 8px; border: 1px solid #3f3f46; font-size: 16px; outline: none; cursor: pointer;">
+        <option value="0">⏸️ Neutral (Logo / Warten)</option>
+        <option value="1">Runde 1</option>
+        <option value="2">Runde 2</option>
+        <option value="3">Runde 3</option>
+        <option value="4">Runde 4</option>
+        <option value="5">Runde 5</option>
+        <option value="6">Runde 6</option>
+        <option value="7">Runde 7</option>
+        <option value="8">Runde 8</option>
+        <option value="9">Runde 9</option>
+        <option value="10">Runde 10</option>
+        <option value="11">Runde 11</option>
+        <option value="12">Runde 12</option>
+        <option value="13">Runde 13</option>
+        <option value="14">Runde 14</option>
+        <option value="15">Runde 15</option>
+        <option value="16">Runde 16</option>
+        <option value="17">Runde 17</option>
+        <option value="18">Runde 18</option>
+        <option value="19">Runde 19</option>
+        <option value="20">Runde 20</option>
+      </select>
+    </div>
+
+    <!-- Aktions-Buttons -->
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <button onclick="Game1Admin.startNewRound()" style="background: #2563eb; color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; cursor: pointer;">Runde Starten</button>
+      <button onclick="Game1Admin.releaseClues()" style="background: #0d9488; color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; cursor: pointer;">Tipps freigeben</button>
+      <button onclick="Game1Admin.evaluateRound()" style="background: #ca8a04; color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; cursor: pointer;">Auswertung starten</button>
+      <button onclick="Game1Admin.setNeutralState()" style="background: #52525b; color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; cursor: pointer;">Zu Neutral / Logo</button>
+      <button onclick="Game1Admin.resetGame()" style="background: #dc2626; color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; cursor: pointer;">Spiel zurücksetzen</button>
+    </div>
+
+  </div>
+
+  <!-- Team-Vorschau & Live-Daten (Kompakt in einer Zeile mit 4 Spalten) -->
+  <h3>Team-Übersicht & Live-Status</h3>
+  <div id="g1-teams-preview" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+    <!-- Wird dynamisch durch JS befüllt -->
+  </div>
+
+  <!-- Supabase Client Initialisierung -->
+  <script>
+    const SUPABASE_URL = 'DEINE_SUPABASE_URL';
+    const SUPABASE_ANON_KEY = 'DEIN_SUPABASE_ANON_KEY';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  </script>
+
+  <!-- Einbindung der Admin-JS-Datei -->
+  <script src="game1/game1_admin.js"></script>
+</body>
+</html>
