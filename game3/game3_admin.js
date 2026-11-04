@@ -66,7 +66,7 @@ window.AdminGame3 = {
     }
   },
 
-  loadPantomimeWord(direction) {
+loadPantomimeWord(direction) {
     if (this.pantomimeList.length === 0) return;
 
     if (direction === 'next') {
@@ -77,6 +77,9 @@ window.AdminGame3 = {
 
     this.updatePantomimeUI();
     this.broadcastState();
+
+    // Optional: Wenn beim Begriffswechsel der Timer gestoppt werden soll:
+    // this.stopTimer();
   },
 
   updatePantomimeUI() {
@@ -104,7 +107,7 @@ window.AdminGame3 = {
     }
   },
 
-  loadTabuCard(direction) {
+loadTabuCard(direction) {
     if (this.tabuList.length === 0) return;
 
     if (direction === 'next') {
@@ -115,6 +118,9 @@ window.AdminGame3 = {
 
     this.updateTabuUI();
     this.broadcastState();
+
+    // Optional: Wenn beim Kartenwechsel der Timer gestoppt werden soll:
+    // this.stopTimer();
   },
 
   async startTimer() {
