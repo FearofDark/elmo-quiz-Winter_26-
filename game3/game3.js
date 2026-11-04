@@ -19,9 +19,11 @@ window.Game3 = {
       this.setupCanvasEvents();
     }
 
+    // WICHTIG: Zuerst den Zustand absolut synchron/await abfragen, BEVOR irgendwelche Channel-Subscriptions starten!
     await this.ladePersistentenZustand();
     await this.ladePunkteZustand();
 
+    // Danach den Realtime-Channel für Live-Änderungen und Broadcasts öffnen
     this.channel = supabaseClient.channel('game3_room_channel');
     
     this.channel
@@ -45,6 +47,7 @@ window.Game3 = {
       })
       .subscribe();
 
+    // Supabase Postgres Changes (DB-Sync)
     supabaseClient
       .channel('game3_db_state_all')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'game3_persistent_state' }, payload => {
@@ -69,19 +72,27 @@ window.Game3 = {
   },
 
   async ladePersistentenZustand() {
-    const { data } = await supabaseClient.from('game3_persistent_state').select('*').eq('id', 1).maybeSingle();
-    if (data) {
-      this.setModeUI(data.mode);
-      this.updateGameState({
-        activeSlot: data.active_slot,
-        word: data.current_word,
-        tabuCard: data.tabu_card
-      });
-      if (data.timer_end) {
-        this.runTimer(data.timer_end);
-      } else {
-        this.stopTimerUI();
+    try {
+      const { data, error } = await supabaseClient.from('game3_persistent_state').select('*').eq('id', 1).maybeSingle();
+      if (error) throw error;
+      
+      if (data) {
+        // Sofort den Modus und den Zustand erzwingen
+        this.setModeUI(data.mode);
+        this.updateGameState({
+          activeSlot: data.active_slot,
+          word: data.current_word,
+          tabuCard: data.tabu_card
+        });
+
+        if (data.timer_end && data.timer_end > Date.now()) {
+          this.runTimer(data.timer_end);
+        } else {
+          this.stopTimerUI();
+        }
       }
+    } catch (err) {
+      console.error("Fehler beim Abrufen des persistenten States beim Neuladen:", err);
     }
   },
 
@@ -96,33 +107,39 @@ window.Game3 = {
   },
 
   setModeUI(mode) {
-    document.getElementById('game3-standard-view').style.display = 'none';
-    document.getElementById('game3-intro-view').style.display = 'none';
-    document.getElementById('game3-drawing-container-main').style.display = 'none';
-    document.getElementById('game3-pantomime-box').style.display = 'none';
-    document.getElementById('game3-tabu-box').style.display = 'none';
+    const introView = document.getElementById('game3-intro-view');
+    const standardView = document.getElementById('game3-standard-view');
+    const drawingContainer = document.getElementById('game3-drawing-container-main');
+    const pantomimeBox = document.getElementById('game3-pantomime-box');
+    const tabuBox = document.getElementById('game3-tabu-box');
+
+    if (introView) introView.style.display = 'none';
+    if (standardView) standardView.style.display = 'none';
+    if (drawingContainer) drawingContainer.style.display = 'none';
+    if (pantomimeBox) pantomimeBox.style.display = 'none';
+    if (tabuBox) tabuBox.style.display = 'none';
 
     const titleEl = document.getElementById('game3-mode-title');
     const subEl = document.getElementById('game3-mode-subtitle');
 
     if (mode === 'intro') {
-      titleEl.innerText = "🎮 Game 3: Arena";
-      subEl.innerText = "Warte auf den Start durch die Regie...";
-      document.getElementById('game3-intro-view').style.display = 'flex';
+      if (titleEl) titleEl.innerText = "🎮 Game 3: Arena";
+      if (subEl) subEl.innerText = "Warte auf den Start durch die Regie...";
+      if (introView) introView.style.display = 'flex';
     } else if (mode === 'pantomime') {
-      titleEl.innerText = "🎭 Pantomime Runde";
-      subEl.innerText = "Der Spieler stellt den Begriff in der Live-Bühne dar!";
-      document.getElementById('game3-standard-view').style.display = 'flex';
-      document.getElementById('game3-pantomime-box').style.display = 'block';
+      if (titleEl) titleEl.innerText = "🎭 Pantomime Runde";
+      if (subEl) titleEl.innerText = "Der Spieler stellt den Begriff in der Live-Bühne dar!";
+      if (standardView) standardView.style.display = 'flex';
+      if (pantomimeBox) pantomimeBox.style.display = 'block';
     } else if (mode === 'drawing') {
-      titleEl.innerText = "🎨 Malen & Raten";
-      subEl.innerText = "Der Maler zeichnet im Großformat auf dem Canvas!";
-      document.getElementById('game3-drawing-container-main').style.display = 'flex';
+      if (titleEl) titleEl.innerText = "🎨 Malen & Raten";
+      if (subEl) titleEl.innerText = "Der Maler zeichnet im Großformat auf dem Canvas!";
+      if (drawingContainer) drawingContainer.style.display = 'flex';
     } else if (mode === 'tabu') {
-      titleEl.innerText = "🚫 Tabu Runde (2vs2vs2vs2)";
-      subEl.innerText = "Erkläre den Begriff ohne die verbotenen Wörter!";
-      document.getElementById('game3-standard-view').style.display = 'flex';
-      document.getElementById('game3-tabu-box').style.display = 'block';
+      if (titleEl) titleEl.innerText = "🚫 Tabu Runde (2vs2vs2vs2)";
+      if (subEl) titleEl.innerText = "Erkläre den Begriff ohne die verbotenen Wörter!";
+      if (standardView) standardView.style.display = 'flex';
+      if (tabuBox) tabuBox.style.display = 'block';
     }
 
     if (this.currentActiveSlot && mode !== 'intro') {
@@ -131,11 +148,13 @@ window.Game3 = {
   },
 
   updateGameState(data) {
-    const isIntroActive = document.getElementById('game3-intro-view').style.display === 'flex';
+    if (!data) return;
+    
+    const isIntroActive = document.getElementById('game3-intro-view')?.style.display === 'flex';
     this.currentActiveSlot = data.activeSlot;
     
     if (!isIntroActive) {
-      const currentMode = document.getElementById('game3-drawing-container-main').style.display === 'flex' ? 'drawing' : 'standard';
+      const currentMode = document.getElementById('game3-drawing-container-main')?.style.display === 'flex' ? 'drawing' : 'standard';
       this.renderActiveCamera(data.activeSlot, currentMode);
     } else {
       if (this.previousActiveSlot) {
@@ -144,12 +163,15 @@ window.Game3 = {
       }
     }
 
-    const isMainPlayer = (MY_SLOT === data.activeSlot);
-    const mySideBox = document.getElementById(`box-${MY_SLOT}`);
+    // Sicherheitsprüfung falls MY_SLOT global noch nicht sofort definiert ist beim harten Reload
+    const currentMySlot = typeof MY_SLOT !== 'undefined' ? MY_SLOT : null;
+    const isMainPlayer = (currentMySlot && currentMySlot === data.activeSlot);
+    
+    const mySideBox = currentMySlot ? document.getElementById(`box-${currentMySlot}`) : null;
     let myTeam = null;
     let activePlayerTeam = null;
     
-    const activeSideBox = document.getElementById(`box-${data.activeSlot}`);
+    const activeSideBox = data.activeSlot ? document.getElementById(`box-${data.activeSlot}`) : null;
     if (activeSideBox) {
       if (activeSideBox.classList.contains('team-blau')) activePlayerTeam = 'blau';
       else if (activeSideBox.classList.contains('team-rot')) activePlayerTeam = 'rot';
@@ -199,14 +221,14 @@ window.Game3 = {
     const tabuListEl = document.getElementById('game3-tabu-forbidden');
 
     if (isMainPlayer) {
-      if (this.currentTabuCard) {
+      if (this.currentTabuCard && tabuMainEl) {
         tabuMainEl.innerText = this.currentTabuCard.main_word;
         const forbidden = [this.currentTabuCard.forbidden_1, this.currentTabuCard.forbidden_2, this.currentTabuCard.forbidden_3, this.currentTabuCard.forbidden_4, this.currentTabuCard.forbidden_5].filter(Boolean);
-        tabuListEl.innerHTML = forbidden.map(w => `<li>❌ ${w}</li>`).join('');
+        if (tabuListEl) tabuListEl.innerHTML = forbidden.map(w => `<li>❌ ${w}</li>`).join('');
       }
     } else if (isTeammate) {
-      tabuMainEl.innerText = "🔒 DU RATET!";
-      tabuListEl.innerHTML = "<li>Teampartner erklärt. Keine Ansicht!</li>";
+      if (tabuMainEl) tabuMainEl.innerText = "🔒 DU RATET!";
+      if (tabuListEl) tabuListEl.innerHTML = "<li>Teampartner erklärt. Keine Ansicht!</li>";
     } else {
       this.updateTabuSpoilerUI();
     }
@@ -271,7 +293,7 @@ window.Game3 = {
     if (cornerCamWrapper) cornerCamWrapper.style.borderColor = borderColor;
     
     const targetUrl = `https://vdo.ninja/?view=${slotId}&solo=1&room=DieElmigos_Stream&password=mikestinkt`;
-    const isDrawingMode = (mode === 'drawing' || document.getElementById('game3-drawing-container-main').style.display === 'flex');
+    const isDrawingMode = (mode === 'drawing' || document.getElementById('game3-drawing-container-main')?.style.display === 'flex');
 
     if (isDrawingMode) {
       if (viewContainer) viewContainer.innerHTML = `Kein Spieler im Fokus`;
@@ -361,11 +383,11 @@ window.Game3 = {
     if (this.spoilerActive) {
       tabuMainEl.innerText = this.currentTabuCard.main_word;
       const forbidden = [this.currentTabuCard.forbidden_1, this.currentTabuCard.forbidden_2, this.currentTabuCard.forbidden_3, this.currentTabuCard.forbidden_4, this.currentTabuCard.forbidden_5].filter(Boolean);
-      tabuListEl.innerHTML = forbidden.map(w => `<li>❌ ${w}</li>`).join('');
+      if (tabuListEl) tabuListEl.innerHTML = forbidden.map(w => `<li>❌ ${w}</li>`).join('');
       if (tabuBtn) tabuBtn.innerText = "🙈 Verstecken";
     } else {
       tabuMainEl.innerText = "••••••••";
-      tabuListEl.innerHTML = "<li>Versteckt...</li>";
+      if (tabuListEl) tabuListEl.innerHTML = "<li>Versteckt...</li>";
       if (tabuBtn) tabuBtn.innerText = "👁️ Anzeigen";
     }
   },
