@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conquest - Admin Steuerung</title>
+    
+    <!-- Supabase JavaScript Client CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        body {
+            background-color: #09090b;
+            color: #f4f4f5;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .admin-container {
+            width: 100%;
+            max-width: 850px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="admin-container">
+        <!-- Das Admin-Panel wird hier dynamisch von game2_admin.js eingefügt -->
+        <div id="admin-game2-controls"></div>
+    </div>
+
+    <!-- WICHTIG: Ersetze die Platzhalter mit deinen echten Supabase-Daten -->
+    <script>
+        const SUPABASE_URL = 'HIER_DEINE_SUPABASE_URL_EINTRAGEN';
+        const SUPABASE_KEY = 'HIER_DEIN_SUPABASE_ANON_KEY_EINTRAGEN';
+        
+        // Globaler Supabase Client, den dein Admin-Skript erwartet
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    </script>
+
+    <!-- Dein Admin-Logik Script -->
+    <script src="game2_admin.js"></script>
+</body>
+</html>

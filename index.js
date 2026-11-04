@@ -270,9 +270,25 @@ channel
       aktualisiereSpielerSlotUI(slotId, null, team);
     }, 600);
   })
-  .on('broadcast', { event: 'start_rainbow_lottery' }, async payload => {
+.on('broadcast', { event: 'start_rainbow_lottery' }, async payload => {
     const { slotId, winnerTeam } = payload.payload;
+    
+    // Prüfen, ob der Spieler gerade im großen Fokus in der Mitte ist
+    const fokusWrapper = document.getElementById('fokus-wrapper');
+    const isCurrentlyFocused = (aktuellerFokusSlotId === slotId && fokusWrapper);
+
+    // Entweder den Fokus-Wrapper oder die normale Box animieren
+    const targetElement = isCurrentlyFocused ? fokusWrapper : document.getElementById(`box-${slotId}`);
+    
+    if (targetElement) {
+      targetElement.classList.add('rainbow-spinning');
+    }
+
+    // Nach 2.5 Sekunden Animation stoppen und final dem Team zuordnen
     setTimeout(() => {
+      if (targetElement) {
+        targetElement.classList.remove('rainbow-spinning');
+      }
       aktualisiereSpielerSlotUI(slotId, null, winnerTeam);
     }, 2500);
   })

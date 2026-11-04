@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Elmo Quiz - Spiel 2 (Conquest)</title>
+  <style>
+    /* Grundlegendes Layout für den Hauptcontainer der Spielerseite */
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background-color: #09090b;
+      color: #ffffff;
+      font-family: sans-serif;
+      overflow: hidden;
+    }
+
+    /* Der zentrale Hauptcontainer, in dem das Spiel gerendert wird */
+    #g2-main-wrapper {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      padding: 10px;
+    }
+
+    #g2-stage {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="g2-main-wrapper">
+    <!-- Hier greift das Skript (game2.js) und zentriert alles perfekt -->
+    <div id="g2-stage">
+      <div style="color: #a1a1aa; font-size: 14px;">Lade Spiel 2...</div>
+    </div>
+  </div>
+
+  <!-- Supabase Client & Spiel-Logik -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Falls du eine zentrale Supabase-Verbindung hast, hier einbinden -->
+  <!-- <script src="../supabase.js"></script> -->
+  
+  <script src="game2.js"></script>
+</body>
+</html>
