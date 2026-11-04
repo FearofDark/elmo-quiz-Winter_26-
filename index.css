@@ -332,6 +332,18 @@ body {
   letter-spacing: 0.5px;
 }
 
+/* Ausgrauen für Spieler, die gerade in der Mitte im Fokus sind */
+.cam-box.is-fused-out {
+  opacity: 0.25 !important;
+  filter: grayscale(80%) !important;
+  pointer-events: none;
+  transition: all 0.4s ease;
+}
+
+.cam-box {
+  transition: all 0.4s ease;
+}
+
 .corner-score-item.blau { color: #60a5fa; font-weight: bold; }
 .corner-score-item.rot { color: #f87171; font-weight: bold; }
 .corner-score-item.gruen { color: #4ade80; font-weight: bold; }
