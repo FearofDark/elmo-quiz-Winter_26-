@@ -28,6 +28,9 @@ window.Game3 = {
       .on('broadcast', { event: 'game3_state_changed' }, payload => {
         this.updateGameState(payload.payload);
       })
+      .on('broadcast', { event: 'game3_set_mode' }, payload => {
+        this.setModeUI(payload.payload.mode);
+      })
       .on('broadcast', { event: 'game3_draw' }, payload => {
         this.drawRemoteLine(payload.payload.x0, payload.payload.y0, payload.payload.x1, payload.payload.y1, payload.payload.color, payload.payload.width);
       })
@@ -128,13 +131,13 @@ window.Game3 = {
   },
 
   updateGameState(data) {
-    const currentMode = document.getElementById('game3-drawing-container-main').style.display === 'flex' ? 'drawing' : (document.getElementById('game3-intro-view').style.display === 'flex' ? 'intro' : 'standard');
+    const isIntroActive = document.getElementById('game3-intro-view').style.display === 'flex';
     this.currentActiveSlot = data.activeSlot;
     
-    if (currentMode !== 'intro') {
+    if (!isIntroActive) {
+      const currentMode = document.getElementById('game3-drawing-container-main').style.display === 'flex' ? 'drawing' : 'standard';
       this.renderActiveCamera(data.activeSlot, currentMode);
     } else {
-      // Wenn Intro-Modus aktiv ist, auch alten Fokus komplett freigeben
       if (this.previousActiveSlot) {
         this.restoreSideBox(this.previousActiveSlot);
         this.previousActiveSlot = null;
@@ -160,7 +163,7 @@ window.Game3 = {
       else if (mySideBox.classList.contains('team-gelb')) myTeam = 'gelb';
     }
 
-    const isTeammate = (myTeam && activePlayerTeam && myTeam === activeTeam && !isMainPlayer);
+    const isTeammate = (myTeam && activePlayerTeam && myTeam === activePlayerTeam && !isMainPlayer);
 
     this.currentSecretWord = data.word || '';
     this.isPainter = isMainPlayer;
@@ -231,12 +234,10 @@ window.Game3 = {
     let borderColor = '#27272a';
     let teamColorClass = 'fokus-team-neutral';
 
-    // 1. Alten aktiven Slot wiederherstellen (Graubild entfernen, Stream neu laden)
     if (this.previousActiveSlot && this.previousActiveSlot !== slotId) {
       this.restoreSideBox(this.previousActiveSlot);
     }
 
-    // 2. Wenn slotId komplett leer/null ist
     if (!slotId) {
       if (this.previousActiveSlot) {
         this.restoreSideBox(this.previousActiveSlot);
@@ -248,12 +249,10 @@ window.Game3 = {
       return;
     }
 
-    // 3. Neuen Slot in den Fokus holen und an der Seite ausgrauen ("Im Fokus")
     this.previousActiveSlot = slotId;
     const sideBox = document.getElementById(`box-${slotId}`);
     if (sideBox) {
       sideBox.classList.add('is-fused-out');
-      
       const videoContainer = sideBox.querySelector('.video-container') || sideBox.querySelector('div[style*="height"]');
       if (videoContainer) {
         if (!videoContainer.dataset.originalHtml) {

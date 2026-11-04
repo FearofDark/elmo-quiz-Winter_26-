@@ -57,20 +57,6 @@
     button:hover {
       opacity: 0.85;
     }
-    .input-row {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-    input[type="text"] {
-      flex-grow: 1;
-      background: #09090b;
-      border: 1px solid #3f3f46;
-      color: #fff;
-      padding: 10px;
-      border-radius: 8px;
-      font-size: 14px;
-    }
   </style>
 </head>
 <body>
@@ -78,16 +64,6 @@
   <div class="admin-container">
     <h1>🎛️ ELMO-QUIZ Regie-Panel</h1>
     <p style="color: #a1a1aa; margin-top: -10px;">Zentrale Steuerung für Spielmodi, Übergänge und Live-Ansichten.</p>
-
-    <!-- INTRO-SCREEN & MODI STEUERUNG -->
-    <div class="panel">
-      <h3>📺 Game 3: Startbildschirm & Übergang</h3>
-      <p style="font-size: 13px; color: #a1a1aa; margin: 0;">Wechsle zum Intro-Screen (z. B. beim Übergang von Game 2 zu Game 3), um den Wavelength-Startbildschirm für alle Spieler zu aktivieren[cite: 6]:</p>
-      
-      <div class="btn-group">
-        <button onclick="AdminGame3.setMode('intro')" style="background: #38bdf8; color: #000; font-size: 14px;">📺 Intro-Screen (Startbildschirm) anzeigen</button>
-      </div>
-    </div>
 
     <!-- GAME 3 REGIE-ZENTRALE & PUNKTE-VERWALTUNG -->
     <div class="panel">
@@ -145,10 +121,10 @@
           </div>
         </div>
 
-        <!-- 1. MODUS AUSWÄHLEN -->
+        <!-- 1. MODUS AUSWÄHLEN (INKLUSIVE INTRO ALS REGULÄRER MODUS) -->
         <div style="display: flex; gap: 8px; align-items: center; background: #18181b; padding: 10px; border-radius: 8px; border: 1px solid #27272a; flex-wrap: wrap;">
           <span style="color: #a1a1aa; font-weight: bold;">Spielmodus:</span>
-          <button onclick="AdminGame3.setMode('intro')" style="background: #38bdf8; color: black; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;">📺 Intro</button>
+          <button onclick="AdminGame3.setMode('intro')" style="background: #38bdf8; color: black; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;">📺 Intro (Start)</button>
           <button onclick="AdminGame3.setMode('pantomime')" style="background: #2563eb; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;">🎭 Pantomime</button>
           <button onclick="AdminGame3.setMode('drawing')" style="background: #16a34a; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;">🎨 Malen</button>
           <button onclick="AdminGame3.setMode('tabu')" style="background: #ca8a04; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;">🚫 Tabu</button>
@@ -170,7 +146,7 @@
           </select>
         </div>
 
-        <!-- TIMER STEUERUNG MIT FREIER ZEIT-EINGABE -->
+        <!-- TIMER STEUERUNG -->
         <div style="background: #18181b; padding: 12px; border-radius: 8px; border: 1px solid #27272a; display: flex; flex-direction: column; gap: 8px;">
           <div style="font-weight: bold; color: #38bdf8;">⏱️ Runden-Timer (Freie Zeit in Sekunden)</div>
           <div style="display: flex; gap: 8px; align-items: center;">
@@ -181,7 +157,7 @@
           </div>
         </div>
 
-        <!-- 3. PANTOMIME / MALEN BEGRIFFE MIT VORSCHAU -->
+        <!-- 3. PANTOMIME / MALEN BEGRIFFE -->
         <div style="background: #18181b; padding: 12px; border-radius: 8px; border: 1px solid #27272a; display: flex; flex-direction: column; gap: 10px;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <div style="font-weight: bold; color: #f43f5e;">🎭 Pantomime / Malen Begriffe</div>
@@ -205,7 +181,7 @@
           </div>
         </div>
 
-        <!-- 4. TABU KARTEN MIT VORSCHAU -->
+        <!-- 4. TABU KARTEN -->
         <div style="background: #18181b; padding: 12px; border-radius: 8px; border: 1px solid #27272a; display: flex; flex-direction: column; gap: 10px;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <div style="font-weight: bold; color: #eab308;">🚫 Tabu Karten Steuerung</div>
@@ -236,61 +212,7 @@
 
   </div>
 
-  <script>
-    // Supabase-Client initialisieren (Bitte hier deine echten Zugangsdaten eintragen)
-    const SUPABASE_URL = 'DEINE_SUPABASE_URL';
-    const SUPABASE_ANON_KEY = 'DEIN_SUPABASE_ANON_KEY';
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    // Einheitliche Admin-Steuerung für Game 3
-    window.AdminGame3 = {
-      async setMode(mode) {
-        try {
-          const { error } = await supabaseClient
-            .from('game3_persistent_state')
-            .update({ mode: mode })
-            .eq('id', 1);
-
-          if (error) throw error;
-          console.log(`Spielmodus erfolgreich auf '${mode}' in Supabase gespeichert.`);
-        } catch (err) {
-          console.error('Fehler beim Ändern des Modus:', err.message);
-          alert('Fehler beim Speichern in Supabase: ' + err.message);
-        }
-      },
-
-      async broadcastState() {
-        const activeSlot = document.getElementById('admin-game3-active-slot').value;
-        await supabaseClient
-          .from('game3_persistent_state')
-          .update({ active_slot: activeSlot })
-          .eq('id', 1);
-      },
-
-      async addPoints(team, amount) {
-        const { data } = await supabaseClient.from('game_state').select('*').eq('id', 1).maybeSingle();
-        if (data) {
-          const currentPoints = data[`punkte_gesamt_${team}`] || 0;
-          const newPoints = Math.max(0, currentPoints + amount);
-          await supabaseClient.from('game_state').update({ [`punkte_gesamt_${team}`]: newPoints }).eq('id', 1);
-          document.getElementById(`admin-score-${team}`).innerText = newPoints;
-        }
-      },
-
-      startTimer() {
-        const seconds = parseInt(document.getElementById('admin-timer-seconds').value) || 60;
-        const endTime = Date.now() + (seconds * 1000);
-        supabaseClient.from('game3_persistent_state').update({ timer_end: endTime }).eq('id', 1);
-      },
-
-      stopTimer() {
-        supabaseClient.from('game3_persistent_state').update({ timer_end: null }).eq('id', 1);
-      },
-
-      loadPantomimeWord(direction) { console.log('Pantomime word:', direction); },
-      loadTabuCard(direction) { console.log('Tabu card:', direction); }
-    };
-  </script>
-
+  <!-- Supabase & Admin-Logik Script Einbindung -->
+  <script src="game3_admin.js"></script>
 </body>
 </html>

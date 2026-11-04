@@ -4,7 +4,7 @@ window.AdminGame3 = {
   pantomimeIndex: -1,
   tabuList: [],
   tabuIndex: -1,
-  currentMode: 'pantomime',
+  currentMode: 'intro',
 
   async init() {
     this.channel = supabaseClient.channel('game3_room_channel');
@@ -122,7 +122,6 @@ window.AdminGame3 = {
     const duration = parseInt(inputVal) || 60;
     const endTime = Date.now() + duration * 1000;
 
-    // In Supabase persistieren
     await supabaseClient.from('game3_persistent_state').update({ 
       timer_end: endTime,
       skip_used: false 
@@ -210,4 +209,6 @@ window.AdminGame3 = {
   }
 };
 
+// Supabase-Client initialisieren (Falls nicht global in der Hauptdatei)
+// const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 AdminGame3.init();
