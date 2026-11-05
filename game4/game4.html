@@ -1,0 +1,142 @@
+<div class="stage-container" style="height: 100%; width: 100%; box-sizing: border-box; padding: 20px; background: #09090b; color: #f4f4f5; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;">
+  
+  <!-- Oben links: Status / Badge -->
+  <div id="game4-status-badge" class="pulse-badge" style="position: absolute; top: 16px; left: 20px; font-size: 11px;">
+    BEREIT
+  </div>
+
+  <!-- Oben rechts: Team-Punkte -->
+  <div class="stage-corner-scores">
+    <span class="corner-score-item blau">🔵 <span id="g4-score-blau">0</span></span>
+    <span class="corner-score-item rot">🔴 <span id="g4-score-rot">0</span></span>
+    <span class="corner-score-item gruen">🟢 <span id="g4-score-gruen">0</span></span>
+    <span class="corner-score-item gelb">🟡 <span id="g4-score-gelb">0</span></span>
+  </div>
+
+  <!-- ================= ZUSTAND 1: STARTSCREEN ================= -->
+  <div id="game4-start-screen" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 16px; max-width: 500px; width: 100%;">
+    <div style="width: 130px; height: 130px; border-radius: 20px; overflow: hidden; border: 2px solid #27272a; box-shadow: 0 10px 30px rgba(0,0,0,0.6); background: #121216; display: flex; align-items: center; justify-content: center;">
+      <img src="https://media.tenor.com/leajUao4yaIAAAAe/elmo-coke.png" alt="Logo" style="width: 100%; height: 100%; object-fit: cover;">
+    </div>
+    <div style="font-size: 32px; font-weight: 900; letter-spacing: 1px; background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+      SOUNDTRACK-RATEN
+    </div>
+    <div style="font-size: 14px; color: #a1a1aa;">
+      Warte auf Spielbeginn und den ersten Song der Regie...
+    </div>
+  </div>
+
+
+  <!-- ================= ZUSTAND 2: DER STYLISCHE MUSIC PLAYER ================= -->
+  <div id="game4-player-screen" style="display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 16px; max-width: 480px; width: 100%;">
+    
+    <!-- Rotierende Vinyl-Platte -->
+    <div style="position: relative; width: 150px; height: 150px; display: flex; align-items: center; justify-content: center;">
+      <div id="game4-vinyl-disc" class="vinyl-record">
+        <div class="vinyl-label">
+          <span>🎵</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Song Info & Snippet Stufe -->
+    <div style="display: flex; flex-direction: column; gap: 4px;">
+      <div id="game4-song-title-display" style="font-size: 19px; font-weight: bold; color: #f4f4f5; letter-spacing: 0.5px;">
+        ??? — ???
+      </div>
+      <div style="font-size: 11px; color: #38bdf8; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); padding: 3px 10px; border-radius: 20px; display: inline-block; align-self: center;">
+        Snippet-Limit: <span id="game4-limit-text" style="font-weight: bold;">0.5 Sekunden</span>
+      </div>
+    </div>
+
+    <!-- Stylischer Playlist-Play-Button direkt im Fokus -->
+    <button id="game4-play-btn" onclick="Game4Client.togglePlay()" class="playlist-play-btn">
+      <span id="game4-btn-icon">▶</span> <span id="game4-btn-text">Ausschnitt abspielen</span>
+    </button>
+
+    <!-- Dezenter Player-Container für Lautstärke -->
+    <div style="width: 100%; background: #121216; border: 1px solid #27272a; border-radius: 12px; padding: 10px 16px; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between;">
+      <span style="font-size: 11px; color: #a1a1aa;">🔊 Lautstärke</span>
+      <input type="range" id="game4-volume-slider" min="0" max="1" step="0.05" value="0.8" oninput="Game4Client.setVolume(this.value)" style="width: 70%; accent-color: #38bdf8; cursor: pointer;">
+    </div>
+
+    <!-- Auflösungs-Box -->
+    <div id="game4-reveal-box" style="display: none; background: rgba(34, 197, 94, 0.15); border: 1px solid #22c55e; color: #4ade80; padding: 10px 16px; border-radius: 10px; font-size: 15px; font-weight: bold; width: 100%; box-sizing: border-box;">
+      🎵 Lösung: <span id="game4-correct-solution" style="color: white;">—</span>
+    </div>
+
+  </div>
+
+  <audio id="game4-audio-element" preload="auto"></audio>
+</div>
+
+<style>
+/* Perfekt runde Vinyl-Platte */
+.vinyl-record {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: 
+    radial-gradient(circle, #000 0%, #000 18%, transparent 19%),
+    repeating-radial-gradient(#18181b, #18181b 3px, #09090b 5px, #121216 7px);
+  border: 4px solid #27272a;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.vinyl-label {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #38bdf8, #2563eb);
+  border: 3px solid #09090b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+  box-sizing: border-box;
+}
+
+@keyframes spinVinyl {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.vinyl-record.spinning {
+  animation: spinVinyl 1.5s linear infinite;
+  transform-origin: center center;
+}
+
+/* Stylischer Playlist-Play-Button (Spotify/Apple Music Vibe) */
+.playlist-play-btn {
+  background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
+  color: white;
+  border: none;
+  width: 100%;
+  padding: 12px 20px;
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.playlist-play-btn:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.6);
+}
+
+.playlist-play-btn:active {
+  transform: scale(0.98);
+}
+</style>

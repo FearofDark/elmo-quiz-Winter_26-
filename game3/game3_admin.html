@@ -73,9 +73,9 @@
           <span>🎮 Game 3 Regie-Zentrale & Punkte-Verwaltung</span>
         </div>
 
-        <!-- PUNKTE-SCHNELLVERGABE FÜR ALLE 4 TEAMS -->
+        <!-- RUNDENPUNKTE-VERGABE (GAME3_STATE) -->
         <div style="background: #18181b; padding: 12px; border-radius: 8px; border: 1px solid #27272a; display: flex; flex-direction: column; gap: 8px;">
-          <div style="font-weight: bold; color: #22c55e;">🏆 Team-Punkte anpassen (+1 / -1)</div>
+          <div style="font-weight: bold; color: #22c55e;">🏆 Game 3 Runden-Punkte anpassen (+1 / -1)</div>
           <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
             
             <!-- Blau -->
@@ -121,7 +121,7 @@
           </div>
         </div>
 
-        <!-- 1. MODUS AUSWÄHLEN (INKLUSIVE INTRO ALS REGULÄRER MODUS) -->
+        <!-- 1. MODUS AUSWÄHLEN -->
         <div style="display: flex; gap: 8px; align-items: center; background: #18181b; padding: 10px; border-radius: 8px; border: 1px solid #27272a; flex-wrap: wrap;">
           <span style="color: #a1a1aa; font-weight: bold;">Spielmodus:</span>
           <button onclick="AdminGame3.setMode('intro')" style="background: #38bdf8; color: black; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;">📺 Intro (Start)</button>
@@ -212,7 +212,6 @@
 
   </div>
 
-  <!-- Supabase & Admin-Logik Script Einbindung -->
   <script src="game3_admin.js"></script>
 </body>
 </html>

@@ -43,12 +43,18 @@ const AdminPanel = {
         <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
           <span style="font-size: 11px; font-weight: bold; color: #a1a1aa; width: 55px;">${slot.slot_id.replace('_', ' ').toUpperCase()}</span>
           <input type="text" value="${slot.spieler_name || ''}" onchange="AdminPanel.updatePlayerName('${slot.slot_id}', this.value)" placeholder="Spieler Name" style="flex-grow: 1; background: #09090b; border: 1px solid #27272a; color: white; padding: 4px 6px; border-radius: 4px; font-size: 11px;">
-          <span style="font-size: 10px; padding: 2px 6px; border-radius: 4px; background: #27272a; color: ${slot.team === 'blau' ? '#38bdf8' : slot.team === 'rot' ? '#f87171' : slot.team === 'gruen' ? '#4ade80' : slot.team === 'gelb' ? '#facc15' : '#a1a1aa'}">
+          
+          <!-- CAPTAIN TOGGLE -->
+          <button onclick="AdminPanel.toggleCaptain('${slot.slot_id}', ${!slot.is_captain})" style="background: ${slot.is_captain ? '#eab308' : '#27272a'}; color: ${slot.is_captain ? '#000' : '#71717a'}; border: 1px solid ${slot.is_captain ? '#ca8a04' : '#3f3f46'}; padding: 3px 8px; font-size: 10px; border-radius: 4px; cursor: pointer; font-weight: bold;" title="Zum Team-Captain ernennen">
+            ${slot.is_captain ? '⭐ Captain' : 'Captain?'}
+          </button>
+
+          <span style="font-size: 10px; padding: 2px 6px; border-radius: 4px; background: ${slot.team === 'blau' ? '#38bdf840' : slot.team === 'rot' ? '#f8717140' : slot.team === 'gruen' ? '#4ade8040' : slot.team === 'gelb' ? '#facc1540' : '#27272a'}; color: ${slot.team === 'blau' ? '#38bdf8' : slot.team === 'rot' ? '#f87171' : slot.team === 'gruen' ? '#4ade80' : slot.team === 'gelb' ? '#facc15' : '#a1a1aa'}">
             ${slot.team ? slot.team.toUpperCase() : 'NEUTRAL'}
           </span>
         </div>
 
-        <div style="display: flex; gap: 4px; align-items: center; border-top: 1px solid #27272a; pt: 4px;">
+        <div style="display: flex; gap: 4px; align-items: center; border-top: 1px solid #27272a; padding-top: 4px;">
           <button onclick="AdminPanel.focusPlayer('${slot.slot_id}')" style="background: #2563eb; border: none; color: white; padding: 3px 6px; font-size: 10px; border-radius: 4px; cursor: pointer;">📺 Fokus</button>
           
           <select id="select-team-${slot.slot_id}" style="background: #09090b; color: white; border: 1px solid #27272a; font-size: 10px; padding: 2px; border-radius: 4px;">
@@ -64,6 +70,11 @@ const AdminPanel = {
         </div>
       </div>
     `).join('');
+  },
+
+  async toggleCaptain(slotId, newCaptainState) {
+    await supabaseClient.from('player_slots').update({ is_captain: newCaptainState }).eq('slot_id', slotId);
+    await this.loadPlayerSlots();
   },
 
   async updatePlayerName(slotId, newName) {
@@ -99,7 +110,6 @@ const AdminPanel = {
     this.loadAdminGameControls(mode);
   },
 
-  // LÄDT DIE ADMIN-STEUERUNG DES WEILIGEN SPIELS DYNAMISCH
   async loadAdminGameControls(gameMode) {
     const controlsContainer = document.getElementById('admin-game-specific-controls');
     if (!controlsContainer) return;
@@ -206,7 +216,7 @@ const AdminPanel = {
       payload: { slotId: slotId }
     });
 
-    await supabaseClient.from('player_slots').update({ team: 'neutral' }).eq('slot_id', slotId);
+    await supabaseClient.from('player_slots').update({ team: 'neutral', is_captain: false }).eq('slot_id', slotId);
     await this.loadPlayerSlots();
   },
 

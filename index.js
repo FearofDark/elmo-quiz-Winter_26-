@@ -30,7 +30,7 @@ async function savePlayerSlot() {
   const modal = document.getElementById('player-setup-modal');
   if (modal) modal.style.display = 'none';
 
-  const { data } = await supabaseClient.from('player_slots').select('spieler_name').eq('slot_id', MY_SLOT).single();
+  const { data } = await supabaseClient.from('player_slots').select('spieler_name, is_captain').eq('slot_id', MY_SLOT).single();
   if (!data || !data.spieler_name || data.spieler_name.startsWith('Spieler ')) {
     await supabaseClient.from('player_slots').update({ spieler_name: MY_SLOT }).eq('slot_id', MY_SLOT);
   }
@@ -99,7 +99,7 @@ async function ladeDatenbankZustand() {
   const { data: slots } = await supabaseClient.from('player_slots').select('*');
   if (slots) {
     slots.forEach(slot => {
-      aktualisiereSpielerSlotUI(slot.slot_id, slot.spieler_name, slot.team);
+      aktualisiereSpielerSlotUI(slot.slot_id, slot.spieler_name, slot.team, slot.is_captain);
     });
   }
 }
@@ -132,7 +132,7 @@ function initGlobalGameStateListener() {
     .subscribe();
 }
 
-function aktualisiereSpielerSlotUI(slotId, name, team) {
+function aktualisiereSpielerSlotUI(slotId, name, team, isCaptain) {
   const box = document.getElementById(`box-${slotId}`);
   const titleEl = document.getElementById(`title-${slotId}`);
 
@@ -146,6 +146,9 @@ function aktualisiereSpielerSlotUI(slotId, name, team) {
       box.classList.add(`team-${team}`);
       targetContainerId = `container-${team}`;
     }
+
+    // Captain-Status via CSS-Klasse setzen (aktiviert die Krone in index.css)[cite: 8]
+    box.classList.toggle('is-captain', isCaptain === true);
 
     const targetContainer = document.getElementById(targetContainerId);
     if (targetContainer && box.parentElement !== targetContainer) {
@@ -206,7 +209,7 @@ channel
     payload.payload.show ? openSelfElmoPopup() : closeSelfElmoPopup();
   })
   .on('broadcast', { event: 'reset_player_team' }, payload => {
-    aktualisiereSpielerSlotUI(payload.payload.slotId, null, 'neutral');
+    aktualisiereSpielerSlotUI(payload.payload.slotId, null, 'neutral', false);
   })
   .on('broadcast', { event: 'focus_player' }, payload => {
     const { slotId } = payload.payload;
@@ -266,30 +269,37 @@ channel
   })
   .on('broadcast', { event: 'assign_team_animated' }, payload => {
     const { slotId, team } = payload.payload;
-    setTimeout(() => {
-      aktualisiereSpielerSlotUI(slotId, null, team);
+    setTimeout(async () => {
+      const { data } = await supabaseClient.from('player_slots').select('*').eq('slot_id', slotId).maybeSingle();
+      if (data) {
+        aktualisiereSpielerSlotUI(data.slot_id, data.spieler_name, data.team, data.is_captain);
+      } else {
+        aktualisiereSpielerSlotUI(slotId, null, team, false);
+      }
     }, 600);
   })
-.on('broadcast', { event: 'start_rainbow_lottery' }, async payload => {
+  .on('broadcast', { event: 'start_rainbow_lottery' }, async payload => {
     const { slotId, winnerTeam } = payload.payload;
     
-    // Prüfen, ob der Spieler gerade im großen Fokus in der Mitte ist
     const fokusWrapper = document.getElementById('fokus-wrapper');
     const isCurrentlyFocused = (aktuellerFokusSlotId === slotId && fokusWrapper);
 
-    // Entweder den Fokus-Wrapper oder die normale Box animieren
     const targetElement = isCurrentlyFocused ? fokusWrapper : document.getElementById(`box-${slotId}`);
     
     if (targetElement) {
       targetElement.classList.add('rainbow-spinning');
     }
 
-    // Nach 2.5 Sekunden Animation stoppen und final dem Team zuordnen
-    setTimeout(() => {
+    setTimeout(async () => {
       if (targetElement) {
         targetElement.classList.remove('rainbow-spinning');
       }
-      aktualisiereSpielerSlotUI(slotId, null, winnerTeam);
+      const { data } = await supabaseClient.from('player_slots').select('*').eq('slot_id', slotId).maybeSingle();
+      if (data) {
+        aktualisiereSpielerSlotUI(data.slot_id, data.spieler_name, data.team, data.is_captain);
+      } else {
+        aktualisiereSpielerSlotUI(slotId, null, winnerTeam, false);
+      }
     }, 2500);
   })
   .on('broadcast', { event: 'switch_game' }, payload => {

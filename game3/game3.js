@@ -19,11 +19,10 @@ window.Game3 = {
       this.setupCanvasEvents();
     }
 
-    // WICHTIG: Zuerst den Zustand absolut synchron/await abfragen, BEVOR irgendwelche Channel-Subscriptions starten!
-    await this.ladePersistentenZustand();
-    await this.ladePunkteZustand();
+    // 1. Zuerst exakten Zustand aus game3_state laden
+    await this.ladeZustand();
 
-    // Danach den Realtime-Channel für Live-Änderungen und Broadcasts öffnen
+    // 2. Realtime-Channel für Broadcast-Events (z. B. Zeichnen)
     this.channel = supabaseClient.channel('game3_room_channel');
     
     this.channel
@@ -47,10 +46,10 @@ window.Game3 = {
       })
       .subscribe();
 
-    // Supabase Postgres Changes (DB-Sync)
+    // 3. Supabase Postgres Changes auf game3_state
     supabaseClient
       .channel('game3_db_state_all')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'game3_persistent_state' }, payload => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'game3_state' }, payload => {
         if (payload.new) {
           this.setModeUI(payload.new.mode);
           this.updateGameState({
@@ -58,32 +57,31 @@ window.Game3 = {
             word: payload.new.current_word,
             tabuCard: payload.new.tabu_card
           });
-          if (payload.new.timer_end) {
+          this.updateScoresUI(payload.new);
+          
+          if (payload.new.timer_end && payload.new.timer_end > Date.now()) {
             this.runTimer(payload.new.timer_end);
           } else {
             this.stopTimerUI();
           }
         }
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'game_state' }, () => {
-        this.ladePunkteZustand();
-      })
       .subscribe();
   },
 
-  async ladePersistentenZustand() {
+  async ladeZustand() {
     try {
-      const { data, error } = await supabaseClient.from('game3_persistent_state').select('*').eq('id', 1).maybeSingle();
+      const { data, error } = await supabaseClient.from('game3_state').select('*').eq('id', 1).maybeSingle();
       if (error) throw error;
       
       if (data) {
-        // Sofort den Modus und den Zustand erzwingen
         this.setModeUI(data.mode);
         this.updateGameState({
           activeSlot: data.active_slot,
           word: data.current_word,
           tabuCard: data.tabu_card
         });
+        this.updateScoresUI(data);
 
         if (data.timer_end && data.timer_end > Date.now()) {
           this.runTimer(data.timer_end);
@@ -92,18 +90,16 @@ window.Game3 = {
         }
       }
     } catch (err) {
-      console.error("Fehler beim Abrufen des persistenten States beim Neuladen:", err);
+      console.error("Fehler beim Abrufen von game3_state beim Neuladen:", err);
     }
   },
 
-  async ladePunkteZustand() {
-    const { data } = await supabaseClient.from('game_state').select('*').eq('id', 1).maybeSingle();
-    if (data) {
-      ['blau', 'rot', 'gruen', 'gelb'].forEach(t => {
-        const el = document.getElementById(`game3-score-${t}`);
-        if (el) el.innerText = data[`punkte_gesamt_${t}`] ?? 0;
-      });
-    }
+  updateScoresUI(data) {
+    if (!data) return;
+    ['blau', 'rot', 'gruen', 'gelb'].forEach(t => {
+      const el = document.getElementById(`game3-score-${t}`);
+      if (el) el.innerText = data[`punkte_runde_${t}`] ?? 0;
+    });
   },
 
   setModeUI(mode) {
@@ -128,16 +124,16 @@ window.Game3 = {
       if (introView) introView.style.display = 'flex';
     } else if (mode === 'pantomime') {
       if (titleEl) titleEl.innerText = "🎭 Pantomime Runde";
-      if (subEl) titleEl.innerText = "Der Spieler stellt den Begriff in der Live-Bühne dar!";
+      if (subEl) subEl.innerText = "Der Spieler stellt den Begriff in der Live-Bühne dar!";
       if (standardView) standardView.style.display = 'flex';
       if (pantomimeBox) pantomimeBox.style.display = 'block';
     } else if (mode === 'drawing') {
       if (titleEl) titleEl.innerText = "🎨 Malen & Raten";
-      if (subEl) titleEl.innerText = "Der Maler zeichnet im Großformat auf dem Canvas!";
+      if (subEl) subEl.innerText = "Der Maler zeichnet im Großformat auf dem Canvas!";
       if (drawingContainer) drawingContainer.style.display = 'flex';
     } else if (mode === 'tabu') {
       if (titleEl) titleEl.innerText = "🚫 Tabu Runde (2vs2vs2vs2)";
-      if (subEl) titleEl.innerText = "Erkläre den Begriff ohne die verbotenen Wörter!";
+      if (subEl) subEl.innerText = "Erkläre den Begriff ohne die verbotenen Wörter!";
       if (standardView) standardView.style.display = 'flex';
       if (tabuBox) tabuBox.style.display = 'block';
     }
@@ -163,7 +159,6 @@ window.Game3 = {
       }
     }
 
-    // Sicherheitsprüfung falls MY_SLOT global noch nicht sofort definiert ist beim harten Reload
     const currentMySlot = typeof MY_SLOT !== 'undefined' ? MY_SLOT : null;
     const isMainPlayer = (currentMySlot && currentMySlot === data.activeSlot);
     

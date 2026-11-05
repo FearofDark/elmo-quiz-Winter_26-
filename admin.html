@@ -17,7 +17,7 @@
     <!-- OBERER BEREICH: MODUS SWITCHER & PUNKTETABELLE -->
     <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 15px;">
       
-      <!-- Spiel Modus Switcher für alle 6 Spiele -->
+      <!-- Spiel Modus Switcher -->
       <div class="card" style="padding: 15px; background: #121216; border: 1px solid #27272a; border-radius: 12px; display: flex; flex-direction: column; gap: 10px;">
         <div style="font-size: 12px; font-weight: bold; color: #38bdf8;">🎮 Studio Spielmodus</div>
         <select id="admin-game-mode" onchange="AdminPanel.setGameMode(this.value)" style="background: #18181b; color: white; border: 1px solid #27272a; padding: 10px; border-radius: 6px; font-weight: bold;">
@@ -85,7 +85,7 @@
     <!-- MITTLERER BEREICH: DYNAMISCHER ADMIN-SPIELBEREICH & SLOTS -->
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
 
-      <!-- Sektion: Dynamisches Admin-Bühnen-Panel für geladene Spiele -->
+      <!-- Sektion: Dynamisches Admin-Bühnen-Panel -->
       <div class="card" style="padding: 20px; background: #121216; border: 1px solid #27272a; border-radius: 12px; min-height: 320px; display: flex; flex-direction: column; gap: 15px;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <div style="font-size: 13px; font-weight: bold; color: #38bdf8;">🎬 Aktive Spiel-Steuerung</div>
@@ -97,10 +97,10 @@
         </div>
       </div>
 
-      <!-- Sektion: Spieler & Slots Verwaltung -->
+      <!-- Sektion: Spieler & Slots Verwaltung (inkl. Captain-Toggle) -->
       <div class="card" style="padding: 15px; background: #121216; border: 1px solid #27272a; border-radius: 12px; display: flex; flex-direction: column; gap: 10px;">
         <div style="font-size: 13px; font-weight: bold; color: #a855f7; display: flex; justify-content: space-between; align-items: center;">
-          <span>👥 Spieler & Slots (Auslosung & Fokus)</span>
+          <span>👥 Spieler & Slots (inkl. Captain-Zuweisung)</span>
           <span style="font-size: 10px; color: #71717a;">Max. 2 pro Team</span>
         </div>
         <div id="admin-slots-list" style="display: flex; flex-direction: column; gap: 6px; max-height: 300px; overflow-y: auto; padding-right: 4px;"></div>
@@ -108,7 +108,7 @@
 
     </div>
 
-    <!-- UNTERER BEREICH: LIVE-TEAM-CHATS NEBENEINANDER -->
+    <!-- UNTERER BEREICH: LIVE-TEAM-CHATS -->
     <div class="card" style="padding: 15px; background: #121216; border: 1px solid #27272a; border-radius: 12px;">
       <div style="font-size: 13px; font-weight: bold; color: #38bdf8; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
         <span>💬 Live Team-Chat Monitore</span>
