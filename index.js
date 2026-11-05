@@ -4,6 +4,14 @@ let MY_SLOT = localStorage.getItem('quiz_studio_my_slot') || null;
 let aktuellesGame = 'lottery';
 let aktuellerFokusSlotId = null;
 
+// Zentrale Funktion für alle performanten VDO.ninja Stream-Links im Studio (9 Kameras optimiert)
+function getStreamUrl(slotId) {
+  const room = "DieElmigos_Stream";
+  const pass = "mikestinkt";
+  const perfParams = "&quality=2&framerate=24&bitrate=500&max_bitrate=800&codec=vp9";
+  return `https://vdo.ninja/?view=${slotId}&solo=1&room=${room}&password=${pass}${perfParams}`;
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   if (!MY_SLOT) {
     const modal = document.getElementById('player-setup-modal');
@@ -221,7 +229,7 @@ channel
         oldBox.classList.remove('in-focus-stage');
         oldBox.innerHTML = `
           <div class="cam-title"><span id="title-${aktuellerFokusSlotId}">Spieler</span></div>
-          <iframe id="iframe-${aktuellerFokusSlotId}" src="https://vdo.ninja/?view=${aktuellerFokusSlotId}&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe>
+          <iframe id="iframe-${aktuellerFokusSlotId}" src="${getStreamUrl(aktuellerFokusSlotId)}" allow="autoplay"></iframe>
         `;
         ladeDatenbankZustand();
       }
@@ -246,7 +254,7 @@ channel
         stage.innerHTML = `
           <div class="fokus-stage-box" style="padding: 10px; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;">
             <div class="fokus-cam-wrapper ${currentTeamClass}" id="fokus-wrapper" style="width: 100%; max-width: 900px; height: 520px; border-radius: 16px; overflow: hidden;">
-              <iframe src="https://vdo.ninja/?view=${slotId}&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay" style="width: 100%; height: 100%;"></iframe>
+              <iframe src="${getStreamUrl(slotId)}" allow="autoplay" style="width: 100%; height: 100%;"></iframe>
             </div>
           </div>
         `;
@@ -258,7 +266,7 @@ channel
           oldBox.classList.remove('in-focus-stage');
           oldBox.innerHTML = `
             <div class="cam-title"><span id="title-${aktuellerFokusSlotId}">Spieler</span></div>
-            <iframe id="iframe-${aktuellerFokusSlotId}" src="https://vdo.ninja/?view=${aktuellerFokusSlotId}&solo=1&room=DieElmigos_Stream&password=mikestinkt" allow="autoplay"></iframe>
+            <iframe id="iframe-${aktuellerFokusSlotId}" src="${getStreamUrl(aktuellerFokusSlotId)}" allow="autoplay"></iframe>
           `;
         }
         aktuellerFokusSlotId = null;

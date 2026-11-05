@@ -236,7 +236,8 @@ window.Game3 = {
       box.classList.remove('is-fused-out');
       const videoContainer = box.querySelector('.video-container') || box.querySelector('div[style*="height"]');
       if (videoContainer) {
-        const sideStreamUrl = `https://vdo.ninja/?view=${targetSlot}&solo=1&room=DieElmigos_Stream&password=mikestinkt`;
+        // Nutzt zentrale Performance-URL
+        const sideStreamUrl = typeof getStreamUrl === 'function' ? getStreamUrl(targetSlot) : `https://vdo.ninja/?view=${targetSlot}&solo=1&room=DieElmigos_Stream&password=mikestinkt&quality=2&framerate=24&bitrate=500&max_bitrate=800&codec=vp9`;
         videoContainer.innerHTML = `<iframe src="${sideStreamUrl}" allow="autoplay" style="width: 100%; height: 100%; border: none;"></iframe>`;
       }
     }
@@ -287,7 +288,8 @@ window.Game3 = {
     if (wrapper) wrapper.className = `fokus-cam-wrapper ${teamColorClass}`;
     if (cornerCamWrapper) cornerCamWrapper.style.borderColor = borderColor;
     
-    const targetUrl = `https://vdo.ninja/?view=${slotId}&solo=1&room=DieElmigos_Stream&password=mikestinkt`;
+    // Nutzt zentrale Performance-URL
+    const targetUrl = typeof getStreamUrl === 'function' ? getStreamUrl(slotId) : `https://vdo.ninja/?view=${slotId}&solo=1&room=DieElmigos_Stream&password=mikestinkt&quality=2&framerate=24&bitrate=500&max_bitrate=800&codec=vp9`;
     const isDrawingMode = (mode === 'drawing' || document.getElementById('game3-drawing-container-main')?.style.display === 'flex');
 
     if (isDrawingMode) {
