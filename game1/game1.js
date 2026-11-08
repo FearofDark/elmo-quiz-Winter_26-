@@ -11,7 +11,26 @@ window.Game1Player = {
     if (typeof supabaseClient !== 'undefined') {
       supabaseClient.channel('game1-state-channel')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'game1_state', filter: 'id=eq.1' }, payload => {
-          if (payload.new) this.renderUI(payload.new);
+          if (payload.new) {
+            // Prüfen, ob sich nur die Punkte oder Nicht-UI-relevante Daten geändert haben
+            if (this.lastStateString) {
+              const oldState = JSON.parse(this.lastStateString);
+              const newState = payload.new;
+              
+              // Wenn sich nur die Punkte geändert haben, aktualisieren wir NUR die Punkteanzeige, ohne den Screen neu zu rendern!
+              if (
+                oldState.current_round === newState.current_round &&
+                oldState.status === newState.status &&
+                oldState.secret_value === newState.secret_value &&
+                JSON.stringify(oldState.team_roles) === JSON.stringify(newState.team_roles)
+              ) {
+                this.updateContainerPoints(newState.team_scores);
+                this.lastStateString = JSON.stringify(newState);
+                return;
+              }
+            }
+            this.renderUI(payload.new);
+          }
         })
         .subscribe();
     }
@@ -58,7 +77,17 @@ window.Game1Player = {
       if (data) {
         const stateStr = JSON.stringify(data);
         if (stateStr !== this.lastStateString) {
-          this.renderUI(data);
+          const oldState = this.lastStateString ? JSON.parse(this.lastStateString) : {};
+          if (
+            oldState.current_round === data.current_round &&
+            oldState.status === data.status &&
+            oldState.secret_value === data.secret_value
+          ) {
+            this.updateContainerPoints(data.team_scores);
+            this.lastStateString = stateStr;
+          } else {
+            this.renderUI(data);
+          }
         } else {
           this.updateContainerPoints(data.team_scores);
         }
@@ -187,7 +216,6 @@ window.Game1Player = {
               </div>
             ` : `
               <div style="display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 550px; margin: 0 auto; text-align: center; background: #18181b; padding: 25px; border-radius: 14px; border: 1px solid #27272a; box-sizing: border-box; box-shadow: 0 8px 20px rgba(0,0,0,0.5);">
-                <!-- Skala von 1 bis 10 angepasst (min="1" max="10" value="5") -->
                 <input type="range" id="g1-slider" min="1" max="10" value="5" oninput="document.getElementById('g1-val').innerText=this.value" style="width: 100%; accent-color: #38bdf8; cursor: pointer; height: 10px; box-sizing: border-box;">
                 <div style="font-size: 44px; font-weight: bold; color: white;" id="g1-val">5</div>
                 <button onclick="Game1Player.submitGuess('${myTeam}')" style="background: #16a34a; color: white; border: none; padding: 16px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 18px; width: 100%; box-shadow: 0 4px 10px rgba(22, 163, 74, 0.4);">Tipp abgeben</button>
@@ -203,7 +231,6 @@ window.Game1Player = {
 
   renderRevealStage(stage, secretValue, guesses, teamScores, cluesData) {
     const teamColors = { blau: '#38bdf8', rot: '#f87171', gruen: '#4ade80', gelb: '#facc15' };
-    // Skala von 1-10 umrechnen (Geheimzahl / 10 * 100)
     const secretPercent = ((secretValue - 1) / 9) * 100;
     const clues = cluesData || {};
 
@@ -213,7 +240,7 @@ window.Game1Player = {
     stage.innerHTML = `
       <div style="width: 100%; display: flex; flex-direction: column; gap: 24px;">
         <div style="background: #18181b; border: 2px solid #3f3f46; padding: 30px; border-radius: 14px; text-align: center; box-shadow: inset 0 0 20px rgba(0,0,0,0.6);">
-          <div style="font-size: 16px; font-weight: bold; color: #facc15; margin-bottom: 24px; letter-spacing: 2px; text-shadow: 0 0 10px rgba(250,204,21,0.4);"> AUSWERTUNG:</div>
+          <div style="font-size: 16px; font-weight: bold; color: #facc15; margin-bottom: 24px; letter-spacing: 2px; text-shadow: 0 0 10px rgba(250,204,21,0.4);">⚡ DRAMATISCHE AUSWERTUNG ⚡</div>
           
           <div style="display: flex; flex-direction: column; gap: 14px; margin: 10px 0;">
             ${['blau', 'rot', 'gruen', 'gelb'].map(t => {
@@ -243,7 +270,6 @@ window.Game1Player = {
             }).join('')}
           </div>
 
-          <!-- Beschriftung der Skala von 1 bis 10 angepasst -->
           <div style="display: flex; justify-content: space-between; font-size: 13px; color: #71717a; padding: 0 4px; margin-top: 15px; font-weight: bold;">
             <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span>
           </div>
