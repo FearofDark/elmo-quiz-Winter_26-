@@ -187,7 +187,8 @@ window.Game1Player = {
               </div>
             ` : `
               <div style="display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 550px; margin: 0 auto; text-align: center; background: #18181b; padding: 25px; border-radius: 14px; border: 1px solid #27272a; box-sizing: border-box; box-shadow: 0 8px 20px rgba(0,0,0,0.5);">
-                <input type="range" id="g1-slider" min="0" max="10" value="5" oninput="document.getElementById('g1-val').innerText=this.value" style="width: 100%; accent-color: #38bdf8; cursor: pointer; height: 10px; box-sizing: border-box;">
+                <!-- Skala von 1 bis 10 angepasst (min="1" max="10" value="5") -->
+                <input type="range" id="g1-slider" min="1" max="10" value="5" oninput="document.getElementById('g1-val').innerText=this.value" style="width: 100%; accent-color: #38bdf8; cursor: pointer; height: 10px; box-sizing: border-box;">
                 <div style="font-size: 44px; font-weight: bold; color: white;" id="g1-val">5</div>
                 <button onclick="Game1Player.submitGuess('${myTeam}')" style="background: #16a34a; color: white; border: none; padding: 16px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 18px; width: 100%; box-shadow: 0 4px 10px rgba(22, 163, 74, 0.4);">Tipp abgeben</button>
               </div>
@@ -202,7 +203,8 @@ window.Game1Player = {
 
   renderRevealStage(stage, secretValue, guesses, teamScores, cluesData) {
     const teamColors = { blau: '#38bdf8', rot: '#f87171', gruen: '#4ade80', gelb: '#facc15' };
-    const secretPercent = (secretValue / 10) * 100;
+    // Skala von 1-10 umrechnen (Geheimzahl / 10 * 100)
+    const secretPercent = ((secretValue - 1) / 9) * 100;
     const clues = cluesData || {};
 
     const zoneLeft = Math.max(0, secretPercent - 10);
@@ -241,8 +243,9 @@ window.Game1Player = {
             }).join('')}
           </div>
 
+          <!-- Beschriftung der Skala von 1 bis 10 angepasst -->
           <div style="display: flex; justify-content: space-between; font-size: 13px; color: #71717a; padding: 0 4px; margin-top: 15px; font-weight: bold;">
-            <span>0</span><span>2</span><span>4</span><span>6</span><span>8</span><span>10</span>
+            <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span>
           </div>
         </div>
       </div>
@@ -250,8 +253,8 @@ window.Game1Player = {
 
     setTimeout(() => {
       ['blau', 'rot', 'gruen', 'gelb'].forEach(t => {
-        const teamGuess = guesses[t] !== undefined ? guesses[t] : 0;
-        const percent = Math.max(1, (teamGuess / 10) * 100);
+        const teamGuess = guesses[t] !== undefined ? guesses[t] : 1;
+        const percent = Math.max(2, ((teamGuess - 1) / 9) * 100);
         const bar = document.querySelector(`.reveal-bar-${t}`);
         if (bar) bar.style.width = `${percent}%`;
       });
@@ -294,7 +297,6 @@ window.Game1Player = {
   }
 };
 
-// Lokale Neulade-Funktion für Spiel 1 (Kameras bleiben aktiv)
 window.reloadGame1Only = async function() {
   console.log("🔄 Spiel 1 wird lokal neu initialisiert...");
   const stage = document.getElementById('g1-stage');
