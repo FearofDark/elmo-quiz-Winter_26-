@@ -1,10 +1,9 @@
-/* Grundlegendes Layout & Design für die Regiezentrale (Kein Scrollen auf Standard-Bildschirmen) */
 html, body {
   background: #050508;
   color: white;
   font-family: system-ui, -apple-system, sans-serif;
   margin: 0;
-  padding: 10px;
+  padding: 6px;
   height: 100vh;
   box-sizing: border-box;
   overflow: hidden;
@@ -13,29 +12,29 @@ html, body {
 .admin-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   height: 100%;
-  max-width: 1500px;
+  max-width: 1600px;
   margin: 0 auto;
 }
 
 .admin-header {
   flex-shrink: 0;
   border-bottom: 1px solid #27272a;
-  padding-bottom: 6px;
+  padding-bottom: 4px;
 }
 
 .admin-top-grid {
   display: grid;
   grid-template-columns: 1fr 3fr;
-  gap: 8px;
+  gap: 6px;
   flex-shrink: 0;
 }
 
 .admin-middle-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  grid-template-columns: 1.4fr 1fr; /* Gibt der Spiel-Steuerung mehr Platz (1.4 zu 1) */
+  gap: 6px;
   flex-grow: 1;
   min-height: 0;
 }
@@ -43,8 +42,8 @@ html, body {
 .card {
   background: #09090b;
   border: 1px solid #27272a;
-  border-radius: 8px;
-  padding: 10px;
+  border-radius: 6px;
+  padding: 8px;
   box-sizing: border-box;
 }
 
@@ -52,7 +51,7 @@ input[type="text"], input[type="number"], select {
   background: #18181b;
   border: 1px solid #27272a;
   color: white;
-  padding: 5px 8px;
+  padding: 4px 6px;
   border-radius: 4px;
   font-size: 11px;
   box-sizing: border-box;
@@ -74,39 +73,40 @@ button {
 /* Team Punktekarten oben */
 .team-score-card {
   background: #18181b;
-  padding: 6px;
-  border-radius: 6px;
+  padding: 4px 6px;
+  border-radius: 4px;
   border: 1px solid #27272a;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 
 .team-score-card input[type="text"] {
   background: #09090b;
   font-weight: bold;
   text-align: center;
-  font-size: 11px;
+  font-size: 10px;
+  padding: 2px;
 }
 
 .score-row {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
 }
 
 .score-row button {
   color: white;
-  padding: 2px 6px;
-  font-size: 10px;
+  padding: 2px 5px;
+  font-size: 9px;
 }
 
 .score-row input[type="number"] {
-  width: 36px;
+  width: 32px;
   background: #09090b;
   text-align: center;
-  font-size: 11px;
+  font-size: 10px;
   padding: 2px;
 }
 
@@ -117,58 +117,47 @@ button {
   gap: 4px;
   overflow-y: auto;
   flex-grow: 1;
-  max-height: calc(100vh - 350px);
   padding-right: 2px;
 }
 
-.slot-item {
-  background: #18181b;
-  border: 1px solid #27272a;
-  padding: 5px 8px;
-  border-radius: 6px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-/* Chat Boxen Unten */
+/* Chat Boxen Unten (Kompakt) */
 .chat-box {
   background: #18181b;
   border: 1px solid #27272a;
-  border-radius: 6px;
-  padding: 6px;
+  border-radius: 4px;
+  padding: 5px;
   display: flex;
   flex-direction: column;
-  height: 140px;
+  height: 100px;
 }
 
 .chat-messages {
   background: #09090b;
   border: 1px solid #27272a;
-  border-radius: 4px;
-  padding: 6px;
+  border-radius: 3px;
+  padding: 4px;
   flex-grow: 1;
   overflow-y: auto;
-  font-size: 10px;
+  font-size: 9px;
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  margin-bottom: 4px;
+  gap: 2px;
+  margin-bottom: 3px;
 }
 
 .chat-input-row {
   display: flex;
-  gap: 4px;
+  gap: 3px;
 }
 
 .chat-input-row input {
-  padding: 4px;
-  font-size: 10px;
+  padding: 3px;
+  font-size: 9px;
 }
 
 .chat-input-row button {
   background: #2563eb;
   color: white;
-  padding: 4px 6px;
-  font-size: 10px;
+  padding: 3px 5px;
+  font-size: 9px;
 }
