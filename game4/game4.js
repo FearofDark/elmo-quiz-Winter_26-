@@ -7,8 +7,12 @@ window.Game4Client = {
     this.audio = document.getElementById('game4-audio-element');
     if (!this.audio) return;
 
+    // Mehrfache Prüfung für Captain-Status, falls Supabase/localStorage kurz braucht
+    await this.checkIfCaptain();
+    setTimeout(() => this.checkIfCaptain(), 500);
+    setTimeout(() => this.checkIfCaptain(), 1500);
+
     await this.loadGame4State();
-    this.checkIfCaptain();
 
     this.audio.ontimeupdate = () => {
       if (this.audio.currentTime >= this.maxDuration) {
@@ -43,7 +47,8 @@ window.Game4Client = {
         .on('broadcast', { event: 'game4_set_stage' }, payload => {
           const { duration } = payload.payload;
           this.maxDuration = duration;
-          document.getElementById('game4-limit-text').innerText = `${duration} Sekunden`;
+          const limitEl = document.getElementById('game4-limit-text');
+          if (limitEl) limitEl.innerText = `${duration} Sekunden`;
         })
         .on('broadcast', { event: 'game4_reveal' }, payload => {
           const { solution } = payload.payload;
@@ -57,19 +62,25 @@ window.Game4Client = {
   },
 
   async checkIfCaptain() {
-    if (typeof MY_SLOT === 'undefined' || !MY_SLOT) return;
+    const slot = typeof MY_SLOT !== 'undefined' ? MY_SLOT : localStorage.getItem('quiz_studio_my_slot');
+    if (!slot) return;
+
     try {
       const { data } = await supabaseClient
         .from('player_slots')
         .select('team, is_captain')
-        .eq('slot_id', MY_SLOT)
+        .eq('slot_id', slot)
         .maybeSingle();
 
+      const captainPanel = document.getElementById('game4-captain-panel');
       if (data && data.is_captain) {
-        const captainPanel = document.getElementById('game4-captain-panel');
         if (captainPanel) {
           captainPanel.style.display = 'flex';
           captainPanel.dataset.myTeam = data.team;
+        }
+      } else {
+        if (captainPanel) {
+          captainPanel.style.display = 'none';
         }
       }
     } catch (e) {}
@@ -129,24 +140,36 @@ window.Game4Client = {
       const limitEl = document.getElementById('game4-limit-text');
       if (limitEl) limitEl.innerText = `${state.snippet_duration} Sekunden`;
     }
-    if (state.active_song) {
+
+    const startScreen = document.getElementById('game4-start-screen');
+    const playerScreen = document.getElementById('game4-player-screen');
+
+    if (state.active_song && state.active_song.trackUrl) {
       this.applySong(state.active_song);
       if (state.is_revealed && state.active_song.solutionText) {
         this.showReveal(state.active_song.solutionText);
       }
     } else {
-      this.resetUI();
+      if (startScreen && playerScreen) {
+        startScreen.style.display = 'none';
+        playerScreen.style.display = 'flex';
+      }
     }
+    this.checkIfCaptain();
   },
 
   applySong(songData) {
-    if (!this.audio.src.includes(songData.trackUrl)) {
-      this.audio.src = songData.trackUrl;
-      this.audio.load();
+    if (songData && songData.trackUrl) {
+      if (!this.audio.src.includes(songData.trackUrl)) {
+        this.audio.src = songData.trackUrl;
+        this.audio.load();
+      }
     }
     
-    document.getElementById('game4-start-screen').style.display = 'none';
-    document.getElementById('game4-player-screen').style.display = 'flex';
+    const startScreen = document.getElementById('game4-start-screen');
+    const playerScreen = document.getElementById('game4-player-screen');
+    if (startScreen) startScreen.style.display = 'none';
+    if (playerScreen) playerScreen.style.display = 'flex';
     
     const titleEl = document.getElementById('game4-song-title-display');
     if (titleEl) {
@@ -156,6 +179,8 @@ window.Game4Client = {
 
     const status = document.getElementById('game4-captain-status');
     if (status) status.innerText = "";
+    
+    this.checkIfCaptain();
   },
 
   showReveal(solution) {
@@ -167,20 +192,25 @@ window.Game4Client = {
   },
 
   resetUI() {
-    this.audio.pause();
-    this.audio.currentTime = 0;
+    if (this.audio) {
+      this.audio.pause();
+      this.audio.currentTime = 0;
+    }
     this.setPlayingState(false);
-    document.getElementById('game4-start-screen').style.display = 'flex';
-    document.getElementById('game4-player-screen').style.display = 'none';
+    const startScreen = document.getElementById('game4-start-screen');
+    const playerScreen = document.getElementById('game4-player-screen');
+    if (startScreen) startScreen.style.display = 'flex';
+    if (playerScreen) playerScreen.style.display = 'none';
     const titleEl = document.getElementById('game4-song-title-display');
     if (titleEl) {
       titleEl.innerText = "";
       titleEl.style.display = 'none';
     }
+    this.checkIfCaptain();
   },
 
   togglePlay() {
-    if (!this.audio.src) return;
+    if (!this.audio || !this.audio.src) return;
     if (this.isPlaying) {
       this.audio.pause();
       this.audio.currentTime = 0;
@@ -210,6 +240,7 @@ window.Game4Client = {
 
 window.reloadGame4Only = async function() {
   await window.Game4Client.loadGame4State();
+  await window.Game4Client.checkIfCaptain();
 };
 
 if (document.readyState === 'loading') {

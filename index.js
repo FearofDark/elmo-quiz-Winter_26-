@@ -4,24 +4,23 @@ let MY_SLOT = localStorage.getItem('quiz_studio_my_slot') || null;
 let aktuellesGame = 'lottery';
 let aktuellerFokusSlotId = null;
 
-// Zentrale Funktion für alle performanten VDO.ninja Stream-Links im Studio (Ohne Raum-Limitierung)
+// Exakte, stabile VDO.Ninja URL-Struktur basierend auf deiner Vorgabe
 function getStreamUrl(slotId) {
+  const room = "DieElmigos_Stream";
   const pass = "mikestinkt";
-  const perfParams = "&quality=2&framerate=24&bitrate=500&max_bitrate=800&codec=vp9&maxviews=100";
-  return `https://vdo.ninja/?view=${slotId}&solo=1&password=${pass}${perfParams}`;
+  return `https://vdo.ninja/?room=${room}&hash=5d95&view=${slotId}&solo=1&password=${pass}&mesh=0&maxviews=100&codec=vp9&clean`;
 }
 
-// Hilfsfunktion: Erzwingt das saubere Nachladen aller iFrames bei F5
+// Hilfsfunktion: Erzwingt das saubere Nachladen aller iFrames bei F5 oder Spielwechsel
 function reloadAllIframes() {
   const slots = ['player_1', 'player_2', 'player_3', 'player_4', 'player_5', 'player_6', 'player_7', 'player_8', 'host_cam'];
   slots.forEach(slotId => {
     const iframe = document.getElementById(`iframe-${slotId}`);
     if (iframe) {
       const targetUrl = getStreamUrl(slotId);
-      iframe.src = '';
-      setTimeout(() => {
+      if (!iframe.src || iframe.src === 'about:blank' || iframe.src !== targetUrl) {
         iframe.src = targetUrl;
-      }, 50);
+      }
     }
   });
 }
@@ -126,7 +125,6 @@ async function ladeDatenbankZustand() {
     });
   }
 
-  // Stellt sicher, dass nach einem F5-Reload alle iFrames sauber geladen werden
   reloadAllIframes();
 }
 
@@ -204,6 +202,7 @@ async function buehneRendern(gameMode) {
         <div class="lottery-subtitle" style="font-size: 14px; color: #71717a;">Gleich geht es los!</div>
       </div>
     `;
+    reloadAllIframes();
     return;
   }
 
@@ -221,6 +220,8 @@ async function buehneRendern(gameMode) {
       script.defer = true;
       document.body.appendChild(script);
     }
+
+    setTimeout(() => reloadAllIframes(), 300);
   } catch (err) {
     stage.innerHTML = `<div style="color: #ef4444; padding: 20px; text-align: center;">Fehler beim Laden von ${gameMode}: ${err.message}</div>`;
   }
