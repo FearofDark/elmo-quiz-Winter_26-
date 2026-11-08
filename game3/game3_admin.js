@@ -1,26 +1,95 @@
 window.AdminGame3 = {
   channel: null,
   pantomimeList: [],
-  pantomimeIndex: -1,
+  pantomimeIndex: 0,
   tabuList: [],
-  tabuIndex: -1,
+  tabuIndex: 0,
   currentMode: 'intro',
+  playerNames: {},
+  teamNames: { blau: 'Blau', rot: 'Rot', gruen: 'Grün', gelb: 'Gelb' },
 
   async init() {
     this.channel = supabaseClient.channel('game3_room_channel');
     await this.channel.subscribe();
 
+    await this.fetchPlayerNames();
+    await this.fetchTeamNamesFromGameState();
     await this.fetchPantomimeWords();
     await this.fetchTabuCards();
     await this.loadScores();
 
-    // Live-Sync für die Punkteanzeige im Admin-Panel über game3_state
+    // Live-Sync für Punkte, Spielernamen und Teamnamen über Supabase Postgres Changes
     supabaseClient
-      .channel('admin_scores_sync')
+      .channel('admin_game3_db_sync')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'game3_state' }, () => {
         this.loadScores();
       })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'game_state' }, () => {
+        this.fetchTeamNamesFromGameState();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'player_slots' }, () => {
+        this.fetchPlayerNames();
+      })
       .subscribe();
+  },
+
+  // Echte Teamnamen direkt aus der game_state Tabelle laden (z.B. team_gelb_name: "Dennis suckt")
+  async fetchTeamNamesFromGameState() {
+    try {
+      const { data, error } = await supabaseClient
+        .from('game_state')
+        .select('*')
+        .limit(1)
+        .maybeSingle();
+
+      if (!error && data) {
+        if (data.team_blau_name) this.teamNames.blau = data.team_blau_name;
+        if (data.team_rot_name) this.teamNames.rot = data.team_rot_name;
+        if (data.team_gruen_name) this.teamNames.gruen = data.team_gruen_name;
+        if (data.team_gelb_name) this.teamNames.gelb = data.team_gelb_name;
+
+        // UI-Labels im Admin-Panel aktualisieren
+        ['blau', 'rot', 'gruen', 'gelb'].forEach(t => {
+          const labelEl = document.getElementById(`admin-team-label-${t}`);
+          if (labelEl) {
+            labelEl.innerText = this.teamNames[t];
+          }
+        });
+      }
+    } catch (err) {
+      console.error("Fehler beim Laden der Teamnamen aus game_state:", err);
+    }
+  },
+
+  // Echte Spielernamen aus der Datenbank-Tabelle player_slots laden
+  async fetchPlayerNames() {
+    try {
+      const { data, error } = await supabaseClient
+        .from('player_slots')
+        .select('slot_id, spieler_name');
+
+      if (!error && data) {
+        const selectEl = document.getElementById('admin-game3-active-slot');
+        const currentValue = selectEl ? selectEl.value : '';
+
+        data.forEach(item => {
+          this.playerNames[item.slot_id] = item.spieler_name || item.slot_id;
+        });
+
+        if (selectEl) {
+          selectEl.innerHTML = `<option value="">-- Kein Spieler ausgewählt --</option>`;
+          data.forEach(item => {
+            const name = item.spieler_name && item.spieler_name.trim() !== '' 
+              ? item.spieler_name 
+              : item.slot_id;
+            selectEl.innerHTML += `<option value="${item.slot_id}">${name} (${item.slot_id})</option>`;
+          });
+          selectEl.value = currentValue;
+        }
+      }
+    } catch (err) {
+      console.error("Fehler beim Laden der Spielernamen aus player_slots:", err);
+    }
   },
 
   async loadScores() {
@@ -63,7 +132,35 @@ window.AdminGame3 = {
     if (!error && data) {
       this.pantomimeList = data;
       this.updatePantomimeUI();
+      await this.saveStateToSupabase();
     }
+  },
+
+  async startTimerForCurrentPantomime() {
+    if (this.pantomimeList.length === 0) return;
+
+    if (this.pantomimeIndex < this.pantomimeList.length - 1) {
+      this.pantomimeIndex++;
+    } else {
+      this.pantomimeIndex = 0;
+    }
+    this.updatePantomimeUI();
+
+    const inputVal = document.getElementById('admin-pantomime-seconds').value;
+    const duration = parseInt(inputVal) || 60;
+    const endTime = Date.now() + duration * 1000;
+
+    await supabaseClient.from('game3_state').update({ 
+      timer_end: endTime
+    }).eq('id', 1);
+
+    this.channel.send({
+      type: 'broadcast',
+      event: 'game3_start_timer',
+      payload: { endTime }
+    });
+    
+    await this.broadcastState();
   },
 
   async loadPantomimeWord(direction) {
@@ -76,8 +173,6 @@ window.AdminGame3 = {
     }
 
     this.updatePantomimeUI();
-    // AUTOMATISCH TIMER STOPPEN BEIM BEGRIFFS-WECHSEL
-    await this.stopTimer();
     await this.broadcastState();
   },
 
@@ -89,7 +184,7 @@ window.AdminGame3 = {
     const currentItem = this.pantomimeList[this.pantomimeIndex];
     const nextItem = this.pantomimeList[this.pantomimeIndex + 1];
 
-    if (liveEl) liveEl.innerText = currentItem ? currentItem.word : 'Noch nicht gestartet';
+    if (liveEl) liveEl.innerText = currentItem ? currentItem.word : 'Noch nicht geladen';
     if (nextEl) nextEl.innerText = nextItem ? nextItem.word : '(Keine weiteren Begriffe)';
     if (countEl) countEl.innerText = `Fortschritt: ${Math.max(0, this.pantomimeIndex + 1)} / ${this.pantomimeList.length}`;
   },
@@ -103,26 +198,21 @@ window.AdminGame3 = {
     if (!error && data) {
       this.tabuList = data;
       this.updateTabuUI();
+      await this.saveStateToSupabase();
     }
   },
 
-  async loadTabuCard(direction) {
+  async startTimerForCurrentTabu() {
     if (this.tabuList.length === 0) return;
 
-    if (direction === 'next') {
-      if (this.tabuIndex < this.tabuList.length - 1) this.tabuIndex++;
-    } else if (direction === 'prev') {
-      if (this.tabuIndex > 0) this.tabuIndex--;
+    if (this.tabuIndex < this.tabuList.length - 1) {
+      this.tabuIndex++;
+    } else {
+      this.tabuIndex = 0;
     }
-
     this.updateTabuUI();
-    // AUTOMATISCH TIMER STOPPEN BEIM KARTEN-WECHSEL
-    await this.stopTimer();
-    await this.broadcastState();
-  },
 
-  async startTimer() {
-    const inputVal = document.getElementById('admin-timer-seconds').value;
+    const inputVal = document.getElementById('admin-tabu-seconds').value;
     const duration = parseInt(inputVal) || 60;
     const endTime = Date.now() + duration * 1000;
 
@@ -135,15 +225,21 @@ window.AdminGame3 = {
       event: 'game3_start_timer',
       payload: { endTime }
     });
+
+    await this.broadcastState();
   },
 
-  async stopTimer() {
-    await supabaseClient.from('game3_state').update({ timer_end: null }).eq('id', 1);
-    this.channel.send({
-      type: 'broadcast',
-      event: 'game3_stop_timer',
-      payload: {}
-    });
+  async loadTabuCard(direction) {
+    if (this.tabuList.length === 0) return;
+
+    if (direction === 'next') {
+      if (this.tabuIndex < this.tabuList.length - 1) this.tabuIndex++;
+    } else if (direction === 'prev') {
+      if (this.tabuIndex > 0) this.tabuIndex--;
+    }
+
+    this.updateTabuUI();
+    await this.broadcastState();
   },
 
   updateTabuUI() {
@@ -161,7 +257,7 @@ window.AdminGame3 = {
       const forbidden = [currentItem.forbidden_1, currentItem.forbidden_2, currentItem.forbidden_3, currentItem.forbidden_4, currentItem.forbidden_5].filter(Boolean);
       if (liveForbiddenEl) liveForbiddenEl.innerText = `Verboten: ${forbidden.join(', ')}`;
     } else {
-      if (liveMainEl) liveMainEl.innerText = 'Noch nicht gestartet';
+      if (liveMainEl) liveMainEl.innerText = 'Noch nicht geladen';
       if (liveForbiddenEl) liveForbiddenEl.innerText = '---';
     }
 

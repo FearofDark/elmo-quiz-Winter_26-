@@ -4,6 +4,7 @@ window.Game5 = {
   subscription: null,
   slotSubscription: null,
   isLocalDragging: false,
+  dragTimeout: null,
   mySlotId: localStorage.getItem('quiz_studio_my_slot') || null,
   myTeam: null,
   isTeamCaptain: false,
@@ -24,7 +25,6 @@ window.Game5 = {
 
     if (!error && data) {
       this.myTeam = data.team;
-      // Liest den im Admin-Panel gesetzten Captain-Status direkt aus der Datenbank aus!
       this.isTeamCaptain = data.is_captain === true;
     }
   },
@@ -71,6 +71,7 @@ window.Game5 = {
           if (oldRound !== this.state.aktive_runde) {
             await this.loadObjectDetails(this.state.aktive_runde);
           } else {
+            // Ignoriere Realtime-Updates, während der lokale Spieler selbst am Regler zieht (verhindert Lagging)
             if (!this.isLocalDragging) this.render();
           }
         }
@@ -104,7 +105,7 @@ window.Game5 = {
       if (screenPlaying) screenPlaying.style.display = 'flex';
     }
 
-    if (submitBtn) {
+    if (submitBtn && !submitBtn.dataset.submittedState) {
       if (this.isTeamCaptain) {
         submitBtn.disabled = false;
         submitBtn.innerText = "Tipp absenden";
@@ -114,7 +115,6 @@ window.Game5 = {
       }
     }
 
-    // Punkte aktualisieren
     document.getElementById('score-val-1').innerText = this.state.punkte_blau || 0;
     document.getElementById('score-val-2').innerText = this.state.punkte_rot || 0;
     document.getElementById('score-val-3').innerText = this.state.punkte_gruen || 0;
@@ -152,16 +152,14 @@ window.Game5 = {
     const refFileId = roundNum * 2 - 1;
     const targetFileId = roundNum * 2;
 
-    // Referenz fest unten links
     if (refContainer) {
       refContainer.innerHTML = `
         <img src="game5/svg/${refFileId}.svg" alt="${cleanRefName}" onerror="this.style.display='none'" style="width: 80px; height: 80px; object-fit: contain; filter: drop-shadow(0 0 10px rgba(255,255,255,0.3)); display: block;" />
       `;
     }
 
-    // Ziel-Objekt beginnt rechts neben der Referenz und skaliert von unten links nach rechts/oben
     let targetHtml = `
-      <img src="game5/svg/${targetFileId}.svg" alt="${cleanTargetName}" onerror="this.style.display='none'" style="width: 80px; height: 80px; object-fit: contain; transform: scale(${currentScale}); transform-origin: bottom left; transition: transform 0.2s ease; filter: drop-shadow(0 0 16px rgba(192,132,252,0.7)); display: block;" />
+      <img src="game5/svg/${targetFileId}.svg" alt="${cleanTargetName}" onerror="this.style.display='none'" style="width: 80px; height: 80px; object-fit: contain; transform: scale(${currentScale}); transform-origin: bottom left; filter: drop-shadow(0 0 16px rgba(192,132,252,0.7)); display: block;" />
     `;
 
     if (this.state.reveal_aktiv) {
@@ -193,14 +191,24 @@ window.Game5 = {
     if (slider && !this.isLocalDragging) slider.value = currentScale;
   },
 
+  // Robustes, flüssiges Skalieren ohne Lag durch Debouncing
   async onSliderChange(val) {
     if (this.state?.reveal_aktiv) return;
     this.isLocalDragging = true;
     const newScale = parseFloat(val);
-    this.render();
 
-    await supabaseClient.from('game5_state').update({ skalierung: newScale, updated_at: new Date() }).eq('id', 1);
-    setTimeout(() => { this.isLocalDragging = false; }, 120);
+    const scaleVal = document.getElementById('game5-scale-value');
+    if (scaleVal) scaleVal.innerText = `${newScale.toFixed(2)}x`;
+
+    const targetImg = document.querySelector('#game5-target-wrapper img');
+    if (targetImg) targetImg.style.transform = `scale(${newScale})`;
+
+    if (this.dragTimeout) clearTimeout(this.dragTimeout);
+
+    this.dragTimeout = setTimeout(async () => {
+      await supabaseClient.from('game5_state').update({ skalierung: newScale, updated_at: new Date() }).eq('id', 1);
+      setTimeout(() => { this.isLocalDragging = false; }, 150);
+    }, 60);
   },
 
   async resetScale() {
@@ -221,8 +229,25 @@ window.Game5 = {
     const updateObj = { updated_at: new Date() };
     updateObj[targetColumn] = currentScale;
 
-    await supabaseClient.from('game5_state').update(updateObj).eq('id', 1);
+    const { error } = await supabaseClient.from('game5_state').update(updateObj).eq('id', 1);
+
+    const submitBtn = document.getElementById('submit-guess-btn');
+    if (!error && submitBtn) {
+      submitBtn.dataset.submittedState = "true";
+      submitBtn.style.background = "#3b82f6";
+      submitBtn.innerText = "Tipp gesendet! ✓";
+      setTimeout(() => {
+        submitBtn.dataset.submittedState = "";
+        submitBtn.style.background = "";
+        submitBtn.innerText = "Tipp absenden";
+      }, 2500);
+    }
   }
+};
+
+window.reloadGame5Only = async function() {
+  console.log("🔄 Spiel 5 wird lokal neu initialisiert...");
+  await window.Game5.loadState();
 };
 
 Game5.init();

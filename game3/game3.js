@@ -23,50 +23,52 @@ window.Game3 = {
     await this.ladeZustand();
 
     // 2. Realtime-Channel für Broadcast-Events (z. B. Zeichnen)
-    this.channel = supabaseClient.channel('game3_room_channel');
-    
-    this.channel
-      .on('broadcast', { event: 'game3_state_changed' }, payload => {
-        this.updateGameState(payload.payload);
-      })
-      .on('broadcast', { event: 'game3_set_mode' }, payload => {
-        this.setModeUI(payload.payload.mode);
-      })
-      .on('broadcast', { event: 'game3_draw' }, payload => {
-        this.drawRemoteLine(payload.payload.x0, payload.payload.y0, payload.payload.x1, payload.payload.y1, payload.payload.color, payload.payload.width);
-      })
-      .on('broadcast', { event: 'game3_clear' }, () => {
-        this.clearCanvasLocal();
-      })
-      .on('broadcast', { event: 'game3_start_timer' }, payload => {
-        this.runTimer(payload.payload.endTime);
-      })
-      .on('broadcast', { event: 'game3_stop_timer' }, () => {
-        this.stopTimerUI();
-      })
-      .subscribe();
+    if (typeof supabaseClient !== 'undefined') {
+      this.channel = supabaseClient.channel('game3_room_channel');
+      
+      this.channel
+        .on('broadcast', { event: 'game3_state_changed' }, payload => {
+          this.updateGameState(payload.payload);
+        })
+        .on('broadcast', { event: 'game3_set_mode' }, payload => {
+          this.setModeUI(payload.payload.mode);
+        })
+        .on('broadcast', { event: 'game3_draw' }, payload => {
+          this.drawRemoteLine(payload.payload.x0, payload.payload.y0, payload.payload.x1, payload.payload.y1, payload.payload.color, payload.payload.width);
+        })
+        .on('broadcast', { event: 'game3_clear' }, () => {
+          this.clearCanvasLocal();
+        })
+        .on('broadcast', { event: 'game3_start_timer' }, payload => {
+          this.runTimer(payload.payload.endTime);
+        })
+        .on('broadcast', { event: 'game3_stop_timer' }, () => {
+          this.stopTimerUI();
+        })
+        .subscribe();
 
-    // 3. Supabase Postgres Changes auf game3_state
-    supabaseClient
-      .channel('game3_db_state_all')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'game3_state' }, payload => {
-        if (payload.new) {
-          this.setModeUI(payload.new.mode);
-          this.updateGameState({
-            activeSlot: payload.new.active_slot,
-            word: payload.new.current_word,
-            tabuCard: payload.new.tabu_card
-          });
-          this.updateScoresUI(payload.new);
-          
-          if (payload.new.timer_end && payload.new.timer_end > Date.now()) {
-            this.runTimer(payload.new.timer_end);
-          } else {
-            this.stopTimerUI();
+      // 3. Supabase Postgres Changes auf game3_state
+      supabaseClient
+        .channel('game3_db_state_all')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'game3_state' }, payload => {
+          if (payload.new) {
+            this.setModeUI(payload.new.mode);
+            this.updateGameState({
+              activeSlot: payload.new.active_slot,
+              word: payload.new.current_word,
+              tabuCard: payload.new.tabu_card
+            });
+            this.updateScoresUI(payload.new);
+            
+            if (payload.new.timer_end && payload.new.timer_end > Date.now()) {
+              this.runTimer(payload.new.timer_end);
+            } else {
+              this.stopTimerUI();
+            }
           }
-        }
-      })
-      .subscribe();
+        })
+        .subscribe();
+    }
   },
 
   async ladeZustand() {
@@ -115,25 +117,20 @@ window.Game3 = {
     if (pantomimeBox) pantomimeBox.style.display = 'none';
     if (tabuBox) tabuBox.style.display = 'none';
 
+    // Titel wird absichtlich leer gehalten, damit oben links kein alter Text/Controller auftaucht
     const titleEl = document.getElementById('game3-mode-title');
     const subEl = document.getElementById('game3-mode-subtitle');
+    if (titleEl) titleEl.innerText = "";
+    if (subEl) subEl.innerText = "";
 
     if (mode === 'intro') {
-      if (titleEl) titleEl.innerText = "🎮 Game 3: Arena";
-      if (subEl) subEl.innerText = "Warte auf den Start durch die Regie...";
       if (introView) introView.style.display = 'flex';
     } else if (mode === 'pantomime') {
-      if (titleEl) titleEl.innerText = "🎭 Pantomime Runde";
-      if (subEl) subEl.innerText = "Der Spieler stellt den Begriff in der Live-Bühne dar!";
       if (standardView) standardView.style.display = 'flex';
       if (pantomimeBox) pantomimeBox.style.display = 'block';
     } else if (mode === 'drawing') {
-      if (titleEl) titleEl.innerText = "🎨 Malen & Raten";
-      if (subEl) subEl.innerText = "Der Maler zeichnet im Großformat auf dem Canvas!";
       if (drawingContainer) drawingContainer.style.display = 'flex';
     } else if (mode === 'tabu') {
-      if (titleEl) titleEl.innerText = "🚫 Tabu Runde (2vs2vs2vs2)";
-      if (subEl) subEl.innerText = "Erkläre den Begriff ohne die verbotenen Wörter!";
       if (standardView) standardView.style.display = 'flex';
       if (tabuBox) tabuBox.style.display = 'block';
     }
@@ -197,8 +194,8 @@ window.Game3 = {
       if (spoilerBtn) spoilerBtn.style.display = 'none';
       if (drawSpoilerBtn) drawSpoilerBtn.style.display = 'none';
     } else if (isTeammate) {
-      if (pantomimeWordEl) pantomimeWordEl.innerText = "🔒 DU RATET! (Geschützt)";
-      if (drawWordEl) drawWordEl.innerText = "🔒 DU RATET! (Geschützt)";
+      if (pantomimeWordEl) pantomimeWordEl.innerText = "🔒 Du rätst! (Geschützt)";
+      if (drawWordEl) drawWordEl.innerText = "🔒 Du rätst! (Geschützt)";
       if (spoilerBtn) spoilerBtn.style.display = 'none';
       if (drawSpoilerBtn) drawSpoilerBtn.style.display = 'none';
     } else {
@@ -222,7 +219,7 @@ window.Game3 = {
         if (tabuListEl) tabuListEl.innerHTML = forbidden.map(w => `<li>❌ ${w}</li>`).join('');
       }
     } else if (isTeammate) {
-      if (tabuMainEl) tabuMainEl.innerText = "🔒 DU RATET!";
+      if (tabuMainEl) tabuMainEl.innerText = "🔒 Du rätst!";
       if (tabuListEl) tabuListEl.innerHTML = "<li>Teampartner erklärt. Keine Ansicht!</li>";
     } else {
       this.updateTabuSpoilerUI();
@@ -236,7 +233,6 @@ window.Game3 = {
       box.classList.remove('is-fused-out');
       const videoContainer = box.querySelector('.video-container') || box.querySelector('div[style*="height"]');
       if (videoContainer) {
-        // Nutzt zentrale Performance-URL
         const sideStreamUrl = typeof getStreamUrl === 'function' ? getStreamUrl(targetSlot) : `https://vdo.ninja/?view=${targetSlot}&solo=1&room=DieElmigos_Stream&password=mikestinkt&quality=2&framerate=24&bitrate=500&max_bitrate=800&codec=vp9`;
         videoContainer.innerHTML = `<iframe src="${sideStreamUrl}" allow="autoplay" style="width: 100%; height: 100%; border: none;"></iframe>`;
       }
@@ -288,7 +284,6 @@ window.Game3 = {
     if (wrapper) wrapper.className = `fokus-cam-wrapper ${teamColorClass}`;
     if (cornerCamWrapper) cornerCamWrapper.style.borderColor = borderColor;
     
-    // Nutzt zentrale Performance-URL
     const targetUrl = typeof getStreamUrl === 'function' ? getStreamUrl(slotId) : `https://vdo.ninja/?view=${slotId}&solo=1&room=DieElmigos_Stream&password=mikestinkt&quality=2&framerate=24&bitrate=500&max_bitrate=800&codec=vp9`;
     const isDrawingMode = (mode === 'drawing' || document.getElementById('game3-drawing-container-main')?.style.display === 'flex');
 
@@ -460,8 +455,19 @@ window.Game3 = {
   clearCanvas() {
     if (!this.isPainter) return;
     this.clearCanvasLocal();
-    this.channel.send({ type: 'broadcast', event: 'game3_clear', payload: {} });
+    if (this.channel) {
+      this.channel.send({ type: 'broadcast', event: 'game3_clear', payload: {} });
+    }
   }
 };
 
-Game3.init();
+window.reloadGame3Only = async function() {
+  console.log("🔄 Spiel 3 wird lokal neu initialisiert...");
+  await window.Game3.ladeZustand();
+};
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => window.Game3.init());
+} else {
+  window.Game3.init();
+}

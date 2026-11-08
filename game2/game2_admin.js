@@ -16,7 +16,7 @@ window.Game2Admin = {
   },
 
   async init() {
-    console.log("🛠️ Game2Admin initialisiert.");
+    console.log("🛠️ Game2Admin initialisiert (Stabil).");
     await this.loadQuestions();
     await this.loadCountries();
     await this.loadState();
@@ -24,18 +24,24 @@ window.Game2Admin = {
   },
 
   async loadQuestions() {
-    const { data, error } = await supabaseClient.from('game2_questions').select('*');
-    if (!error && data) this.questionsCache = data;
+    try {
+      const { data } = await supabaseClient.from('game2_questions').select('*');
+      this.questionsCache = data || [];
+    } catch (e) { this.questionsCache = []; }
   },
 
   async loadCountries() {
-    const { data } = await supabaseClient.from('game2_countries').select('*');
-    if (data) this.countriesCache = data;
+    try {
+      const { data } = await supabaseClient.from('game2_countries').select('*');
+      this.countriesCache = data || [];
+    } catch (e) { this.countriesCache = []; }
   },
 
   async loadState() {
-    const { data } = await supabaseClient.from('game2_state').select('*').eq('id', 1).maybeSingle();
-    if (data) this.currentState = data;
+    try {
+      const { data } = await supabaseClient.from('game2_state').select('*').eq('id', 1).maybeSingle();
+      this.currentState = data || { team_scores: { blau: 0, rot: 0, gruen: 0, gelb: 0 } };
+    } catch (e) { this.currentState = { team_scores: { blau: 0, rot: 0, gruen: 0, gelb: 0 } }; }
   },
 
   toggleContinent(cName) {
@@ -66,8 +72,9 @@ window.Game2Admin = {
     if (!container) return;
 
     const activeQuestionObj = this.questionsCache.find(q => 
-      q.continent?.toLowerCase().trim() === this.selectedContinent.toLowerCase().trim() &&
-      q.country?.toLowerCase().trim() === this.selectedCountry.toLowerCase().trim() &&
+      q.continent && q.country &&
+      q.continent.toLowerCase().trim() === this.selectedContinent.toLowerCase().trim() &&
+      q.country.toLowerCase().trim() === this.selectedCountry.toLowerCase().trim() &&
       parseInt(q.difficulty) === parseInt(this.selectedDifficulty)
     );
 

@@ -1,6 +1,28 @@
 <div style="display: flex; flex-direction: column; gap: 12px; width: 100%; text-align: left;">
   <div style="font-size: 13px; font-weight: bold; color: #38bdf8; border-bottom: 1px solid #27272a; padding-bottom: 6px;">
-    🎧 Spiel 4 Regie-Steuerung (Playlist & Audio-Stufen)
+    🎧 Spiel 4 Regie-Steuerung (Playlist & Captain-Antworten)
+  </div>
+
+  <!-- Live Captain-Antworten Box mit Lösch-Button -->
+  <div style="background: #18181b; border: 1px solid #eab30840; padding: 10px; border-radius: 8px; display: flex; flex-direction: column; gap: 6px;">
+    <div style="font-size: 11px; font-weight: bold; color: #eab308; display: flex; justify-content: space-between; align-items: center;">
+      <span>👑 Live Captain-Antworten:</span>
+      <button onclick="Game4Admin.clearCaptainSubmissions()" style="background: #dc2626; color: white; border: none; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; cursor: pointer;" title="Antworten für die nächste Runde zurücksetzen">🗑️ Antworten löschen</button>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; font-size: 11px;">
+      <div style="background: #09090b; padding: 6px; border-radius: 4px; border: 1px solid #3b82f640;">
+        <span style="color: #60a5fa; font-weight: bold;">Blau:</span> <span id="g4-sub-blau" style="color: #71717a;">Warte...</span>
+      </div>
+      <div style="background: #09090b; padding: 6px; border-radius: 4px; border: 1px solid #ef444440;">
+        <span style="color: #f87171; font-weight: bold;">Rot:</span> <span id="g4-sub-rot" style="color: #71717a;">Warte...</span>
+      </div>
+      <div style="background: #09090b; padding: 6px; border-radius: 4px; border: 1px solid #22c55e40;">
+        <span style="color: #4ade80; font-weight: bold;">Grün:</span> <span id="g4-sub-gruen" style="color: #71717a;">Warte...</span>
+      </div>
+      <div style="background: #09090b; padding: 6px; border-radius: 4px; border: 1px solid #eab30840;">
+        <span style="color: #facc15; font-weight: bold;">Gelb:</span> <span id="g4-sub-gelb" style="color: #71717a;">Warte...</span>
+      </div>
+    </div>
   </div>
 
   <!-- Playlist & Song-Auswahl (Skipping) -->

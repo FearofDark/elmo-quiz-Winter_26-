@@ -21,17 +21,25 @@
 
     <!-- Kategorie-Header -->
     <div id="g1-cat-title" style="font-size: 30px; font-weight: bold; color: white; text-align: center; margin-top: -5px; border-bottom: 2px solid #27272a; padding-bottom: 16px; letter-spacing: 0.5px;">
-      Wavelength </div>
+      Wavelength 
+    </div>
 
     <!-- Dynamische Spiel-Bühne -->
-    <div id="g1-stage" style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%;"></div>
+    <div id="g1-stage" style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%;">
+      <div style="color: #facc15; font-size: 16px; font-weight: bold;">Lade Spiel 1...</div>
+    </div>
+
+    <!-- Mini-Reload-Button: Lädt NUR Spiel 1 neu, Kameras/Webcam bleiben aktiv -->
+    <button onclick="window.reloadGame1Only()" style="position: absolute; bottom: 10px; left: 15px; background: #18181b; color: #a1a1aa; border: 1px solid #27272a; padding: 4px 8px; font-size: 10px; border-radius: 4px; cursor: pointer; z-index: 9999;" title="Nur Spiel 1 neu laden (Kameras bleiben an)">
+      🔄 Spiel-Fix
+    </button>
 
   </div>
 
   <!-- Supabase Client Initialisierung -->
   <script>
-    const SUPABASE_URL = 'DEINE_SUPABASE_URL';
-    const SUPABASE_ANON_KEY = 'DEIN_SUPABASE_ANON_KEY';
+    const SUPABASE_URL = 'HIER_DEINE_SUPABASE_URL_EINTRAGEN';
+    const SUPABASE_ANON_KEY = 'HIER_DEIN_SUPABASE_ANON_KEY_EINTRAGEN';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     const MY_SLOT = parseInt(localStorage.getItem('my_slot_id')) || 1;
   </script>

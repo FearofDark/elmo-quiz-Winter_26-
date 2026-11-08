@@ -7,8 +7,8 @@ window.Game4Client = {
     this.audio = document.getElementById('game4-audio-element');
     if (!this.audio) return;
 
-    // Spiel-4-Zustand (inkl. Rundenpunkte) laden
     await this.loadGame4State();
+    this.checkIfCaptain();
 
     this.audio.ontimeupdate = () => {
       if (this.audio.currentTime >= this.maxDuration) {
@@ -22,50 +22,101 @@ window.Game4Client = {
       this.setPlayingState(false);
     };
 
-    // Live-Sync direkt über game4_state (für Punkte, Song & Stufe)
-    supabaseClient
-      .channel('game4-state-sync')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'game4_state' }, payload => {
-        if (payload.new) {
-          this.applyState(payload.new);
-        }
-      })
-      .subscribe();
+    if (typeof supabaseClient !== 'undefined') {
+      supabaseClient
+        .channel('game4-state-sync')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'game4_state' }, payload => {
+          if (payload.new) {
+            this.applyState(payload.new);
+          }
+        })
+        .subscribe();
 
-    // Broadcasts für sekundengenaue Audio-Aktionen
-    const channel = supabaseClient.channel('game4-realtime', {
-      config: { broadcast: { self: true } }
-    });
+      const channel = supabaseClient.channel('game4-realtime', {
+        config: { broadcast: { self: true } }
+      });
 
-    channel
-      .on('broadcast', { event: 'game4_load_track' }, payload => {
-        this.applySong(payload.payload);
-      })
-      .on('broadcast', { event: 'game4_set_stage' }, payload => {
-        const { duration, stageName } = payload.payload;
-        this.maxDuration = duration;
-        document.getElementById('game4-limit-text').innerText = `${duration} Sekunden`;
-        document.getElementById('game4-status-badge').innerText = stageName;
-      })
-      .on('broadcast', { event: 'game4_reveal' }, payload => {
-        const { solution } = payload.payload;
-        this.showReveal(solution);
-      })
-      .on('broadcast', { event: 'game4_reset' }, () => {
-        this.resetUI();
-      })
-      .subscribe();
-  },
-
-  async loadGame4State() {
-    const { data } = await supabaseClient.from('game4_state').select('*').eq('id', 1).maybeSingle();
-    if (data) {
-      this.applyState(data);
+      channel
+        .on('broadcast', { event: 'game4_load_track' }, payload => {
+          this.applySong(payload.payload);
+        })
+        .on('broadcast', { event: 'game4_set_stage' }, payload => {
+          const { duration } = payload.payload;
+          this.maxDuration = duration;
+          document.getElementById('game4-limit-text').innerText = `${duration} Sekunden`;
+        })
+        .on('broadcast', { event: 'game4_reveal' }, payload => {
+          const { solution } = payload.payload;
+          this.showReveal(solution);
+        })
+        .on('broadcast', { event: 'game4_reset' }, () => {
+          this.resetUI();
+        })
+        .subscribe();
     }
   },
 
+  async checkIfCaptain() {
+    if (typeof MY_SLOT === 'undefined' || !MY_SLOT) return;
+    try {
+      const { data } = await supabaseClient
+        .from('player_slots')
+        .select('team, is_captain')
+        .eq('slot_id', MY_SLOT)
+        .maybeSingle();
+
+      if (data && data.is_captain) {
+        const captainPanel = document.getElementById('game4-captain-panel');
+        if (captainPanel) {
+          captainPanel.style.display = 'flex';
+          captainPanel.dataset.myTeam = data.team;
+        }
+      }
+    } catch (e) {}
+  },
+
+  async sendCaptainAnswer() {
+    const input = document.getElementById('game4-captain-input');
+    const status = document.getElementById('game4-captain-status');
+    const panel = document.getElementById('game4-captain-panel');
+    if (!input || !panel) return;
+
+    const answerText = input.value.trim();
+    const teamId = panel.dataset.myTeam;
+    if (!answerText || !teamId) return;
+
+    try {
+      const { error } = await supabaseClient.from('game4_submissions').upsert({
+        team_id: teamId,
+        team_name: teamId.toUpperCase(),
+        answer: answerText,
+        updated_at: new Date()
+      }, { onConflict: 'team_id' });
+
+      if (!error) {
+        status.innerText = "✅ Antwort erfolgreich gesendet!";
+        status.style.color = "#4ade80";
+        input.value = "";
+      } else {
+        status.innerText = "❌ Fehler beim Senden.";
+        status.style.color = "#f87171";
+      }
+    } catch (err) {
+      status.innerText = "❌ Verbindungsfehler.";
+      status.style.color = "#f87171";
+    }
+  },
+
+  async loadGame4State() {
+    try {
+      const { data } = await supabaseClient.from('game4_state').select('*').eq('id', 1).maybeSingle();
+      if (data) {
+        this.applyState(data);
+      }
+    } catch (e) {}
+  },
+
   applyState(state) {
-    // Punkte aktualisieren
     ['blau', 'rot', 'gruen', 'gelb'].forEach(t => {
       const el = document.getElementById(`g4-score-${t}`);
       if (el && state[`punkte_runde_${t}`] !== undefined) {
@@ -73,15 +124,10 @@ window.Game4Client = {
       }
     });
 
-    // Snippet & Status aktualisieren
     if (state.snippet_duration) {
       this.maxDuration = state.snippet_duration;
       const limitEl = document.getElementById('game4-limit-text');
       if (limitEl) limitEl.innerText = `${state.snippet_duration} Sekunden`;
-    }
-    if (state.snippet_name) {
-      const badgeEl = document.getElementById('game4-status-badge');
-      if (badgeEl) badgeEl.innerText = state.snippet_name;
     }
     if (state.active_song) {
       this.applySong(state.active_song);
@@ -101,15 +147,23 @@ window.Game4Client = {
     
     document.getElementById('game4-start-screen').style.display = 'none';
     document.getElementById('game4-player-screen').style.display = 'flex';
-    document.getElementById('game4-song-title-display').innerText = "❓ ??? — ???";
-    document.getElementById('game4-reveal-box').style.display = 'none';
+    
+    const titleEl = document.getElementById('game4-song-title-display');
+    if (titleEl) {
+      titleEl.innerText = "";
+      titleEl.style.display = 'none';
+    }
+
+    const status = document.getElementById('game4-captain-status');
+    if (status) status.innerText = "";
   },
 
   showReveal(solution) {
-    document.getElementById('game4-correct-solution').innerText = solution;
-    document.getElementById('game4-song-title-display').innerText = `🎵 ${solution}`;
-    document.getElementById('game4-reveal-box').style.display = 'block';
-    document.getElementById('game4-status-badge').innerText = 'AUFGELÖST';
+    const titleEl = document.getElementById('game4-song-title-display');
+    if (titleEl) {
+      titleEl.innerText = `🎵 ${solution}`;
+      titleEl.style.display = 'block';
+    }
   },
 
   resetUI() {
@@ -118,8 +172,11 @@ window.Game4Client = {
     this.setPlayingState(false);
     document.getElementById('game4-start-screen').style.display = 'flex';
     document.getElementById('game4-player-screen').style.display = 'none';
-    document.getElementById('game4-reveal-box').style.display = 'none';
-    document.getElementById('game4-status-badge').innerText = 'BEREIT';
+    const titleEl = document.getElementById('game4-song-title-display');
+    if (titleEl) {
+      titleEl.innerText = "";
+      titleEl.style.display = 'none';
+    }
   },
 
   togglePlay() {
@@ -132,14 +189,6 @@ window.Game4Client = {
       this.audio.currentTime = 0;
       this.audio.play().then(() => this.setPlayingState(true)).catch(() => {});
     }
-  },
-
-  replay() {
-    if (!this.audio.src) return;
-    this.audio.pause();
-    this.audio.currentTime = 0;
-    this.audio.play();
-    this.setPlayingState(true);
   },
 
   setVolume(val) {
@@ -159,4 +208,12 @@ window.Game4Client = {
   }
 };
 
-Game4Client.init();
+window.reloadGame4Only = async function() {
+  await window.Game4Client.loadGame4State();
+};
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => window.Game4Client.init());
+} else {
+  window.Game4Client.init();
+}

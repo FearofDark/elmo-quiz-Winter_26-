@@ -31,7 +31,7 @@ const Game6 = {
     const { data } = await supabaseClient.from('game6_state').select('*').eq('id', 1).maybeSingle();
     if (data) {
       this.state = data;
-      this.render(); // Erzwingt sofortiges Wiederherstellen der UI beim Laden/Reconnect
+      this.render();
     }
   },
 
@@ -52,7 +52,7 @@ const Game6 = {
       })
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          this.fullResync(); // Voller Sync bei erfolgreichem Reconnect
+          this.fullResync();
         }
         if (status === 'CHANNEL_ERROR' || status === 'CLOSED' || status === 'TIMED_OUT') {
           setTimeout(() => this.setupRealtimeWithReconnect(), 2000);
@@ -60,12 +60,11 @@ const Game6 = {
       });
   },
 
-  // Steuert das saubere Ausgrauen der Rand-Kameras (.cam-box)
   updateGlobalSidebarFade(isChallengeMode, activeBiddingSlots, focusedSlot) {
     const allSidebarBoxes = document.querySelectorAll('.cam-box');
     
     allSidebarBoxes.forEach(box => {
-      const boxId = box.id; // z.B. "box-player_1"
+      const boxId = box.id;
       const slotName = boxId.replace('box-', '');
 
       if (isChallengeMode) {
@@ -84,12 +83,22 @@ const Game6 = {
   },
 
   render() {
-    // Fallback, falls State noch lädt
     if (!this.state) {
       const bannerTitle = document.getElementById('g6-banner-title');
       if (bannerTitle) bannerTitle.innerText = 'Lade Spielstatus...';
       return;
     }
+
+    // Punkte aktualisieren
+    const scoreBlau = document.getElementById('g6-score-blau');
+    const scoreRot = document.getElementById('g6-score-rot');
+    const scoreGruen = document.getElementById('g6-score-gruen');
+    const scoreGelb = document.getElementById('g6-score-gelb');
+
+    if (scoreBlau) scoreBlau.innerText = this.state.punkte_blau || 0;
+    if (scoreRot) scoreRot.innerText = this.state.punkte_rot || 0;
+    if (scoreGruen) scoreGruen.innerText = this.state.punkte_gruen || 0;
+    if (scoreGelb) scoreGelb.innerText = this.state.punkte_gelb || 0;
 
     const isChallengeMode = (this.state.bidding_mode === 'challenge' || this.state.phase === 'challenge');
     const isCaptainsMode = (this.state.bidding_mode === 'captains');
@@ -99,7 +108,6 @@ const Game6 = {
       ? (this.captains.length > 0 ? this.captains : ['player_1', 'player_2', 'player_3', 'player_4'])
       : (this.teammates.length > 0 ? this.teammates : ['player_5', 'player_6', 'player_7', 'player_8']);
 
-    // Sidebar-Fading anwenden
     this.updateGlobalSidebarFade(isChallengeMode, activeBiddingSlots, focusedSlot);
 
     const normalBanner = document.getElementById('g6-normal-banner');
@@ -107,7 +115,6 @@ const Game6 = {
     const challengeFocusView = document.getElementById('g6-challenge-focus-view');
 
     if (isChallengeMode) {
-      // --- CHALLENGE-MODUS ---
       if (normalBanner) normalBanner.style.display = 'none';
       if (biddingGridView) biddingGridView.style.display = 'none';
       if (challengeFocusView) challengeFocusView.style.display = 'flex';
@@ -145,7 +152,6 @@ const Game6 = {
         }
       }
     } else {
-      // --- NORMALER BIET-MODUS ---
       if (normalBanner) normalBanner.style.display = 'flex';
       if (biddingGridView) biddingGridView.style.display = 'flex';
       if (challengeFocusView) challengeFocusView.style.display = 'none';
@@ -203,6 +209,11 @@ const Game6 = {
       });
     }
   }
+};
+
+window.reloadGame6Only = async function() {
+  console.log("🔄 Spiel 6 wird lokal neu initialisiert...");
+  await Game6.fullResync();
 };
 
 Game6.init();

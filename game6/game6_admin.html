@@ -1,54 +1,100 @@
-<div style="display: flex; flex-direction: column; gap: 8px; width: 100%; text-align: left; font-size: 11px; font-family: system-ui, -apple-system, sans-serif;">
-  <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #27272a; padding-bottom: 4px;">
-    <span style="font-weight: bold; color: #eab308;">🎰 Pokertisch Regie (Spiel 6)</span>
-    <button onclick="Game6Admin.fullResync()" style="background: #27272a; color: #38bdf8; border: 1px solid #3f3f46; padding: 2px 6px; border-radius: 3px; font-size: 9px; cursor: pointer; font-weight: bold;">🔄 Sync</button>
-  </div>
+<div style="display: flex; flex-direction: column; gap: 8px; width: 100%; text-align: left; font-size: 11px; font-family: system-ui, -apple-system, sans-serif; background: #09090b; color: white; padding: 8px; border-radius: 8px; box-sizing: border-box;">
   
-  <!-- Biet-Modus Auswahl (Jetzt mit 3-Button-Auswahl inkl. Challenge) -->
-  <div style="background: #18181b; padding: 6px; border-radius: 6px; border: 1px solid #27272a;">
-    <div style="color: #a1a1aa; font-weight: bold; margin-bottom: 4px;">Aktiver Modus:</div>
+  <!-- Header & Sync -->
+  <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #27272a; padding-bottom: 6px;">
+    <span style="font-weight: bold; color: #eab308; font-size: 12px;">🎰 Spiel 6: Regie-Steuerung</span>
     <div style="display: flex; gap: 4px;">
-      <button id="g6-adm-mode-caps" onclick="Game6Admin.setBiddingMode('captains')" style="flex: 1; background: #2563eb; color: white; border: none; padding: 6px 2px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 10px;">⭐ Kapitäne</button>
-      <button id="g6-adm-mode-teams" onclick="Game6Admin.setBiddingMode('teammates')" style="flex: 1; background: #27272a; color: #a1a1aa; border: none; padding: 6px 2px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 10px;">👥 Teammates</button>
-      <button id="g6-adm-mode-challenge" onclick="Game6Admin.setBiddingMode('challenge')" style="flex: 1; background: #27272a; color: #a1a1aa; border: none; padding: 6px 2px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 10px;">🎯 Challenge</button>
+      <button onclick="Game6Admin.resetCompleteGame()" style="background: #dc2626; color: white; border: none; padding: 2px 6px; border-radius: 3px; font-size: 10px; cursor: pointer; font-weight: bold;" title="Komplett-Reset">🔄 Reset</button>
+      <button onclick="Game6Admin.fullResync()" style="background: #27272a; color: #38bdf8; border: 1px solid #3f3f46; padding: 2px 6px; border-radius: 3px; font-size: 10px; cursor: pointer; font-weight: bold;">🔄 Sync</button>
     </div>
   </div>
 
-  <!-- Kategorie Senden -->
+  <!-- Sektion 1: Spiel-Status & Modus -->
   <div style="background: #18181b; padding: 6px; border-radius: 6px; border: 1px solid #27272a; display: flex; flex-direction: column; gap: 4px;">
-    <label style="color: #a1a1aa;">Kategorie aus Supabase wählen:</label>
+    <div style="color: #a1a1aa; font-weight: bold;">1. Biet-Modus:</div>
     <div style="display: flex; gap: 4px;">
-      <select id="g6-adm-categories-select" style="flex-grow: 1; background:#09090b; color:white; border:1px solid #27272a; padding:4px; border-radius:4px; font-size:11px;"></select>
+      <button id="g6-adm-mode-caps" onclick="Game6Admin.setBiddingMode('captains')" style="flex: 1; background: #2563eb; color: white; border: none; padding: 5px 2px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 10px;">⭐ Kapitäne</button>
+      <button id="g6-adm-mode-teams" onclick="Game6Admin.setBiddingMode('teammates')" style="flex: 1; background: #27272a; color: #a1a1aa; border: none; padding: 5px 2px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 10px;">👥 Teammates</button>
+      <button id="g6-adm-mode-challenge" onclick="Game6Admin.setBiddingMode('challenge')" style="flex: 1; background: #27272a; color: #a1a1aa; border: none; padding: 5px 2px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 10px;">🎯 Challenge</button>
+    </div>
+  </div>
+
+  <!-- Sektion 2: Kategorie & Wiki -->
+  <div style="background: #18181b; padding: 6px; border-radius: 6px; border: 1px solid #27272a; display: flex; flex-direction: column; gap: 4px;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <label style="color: #a1a1aa; font-weight: bold;">2. Kategorie wählen:</label>
+      <a id="g6-adm-wiki-link" href="#" target="_blank" style="display: none; color: #38bdf8; text-decoration: none; font-weight: bold;">🌐 Wiki-Quelle</a>
+    </div>
+    <div style="display: flex; gap: 4px;">
+      <select id="g6-adm-categories-select" onchange="Game6Admin.onCategorySelectChange()" style="flex-grow: 1; background:#09090b; color:white; border:1px solid #27272a; padding:4px; border-radius:4px; font-size:11px;"></select>
       <button onclick="Game6Admin.sendCategory()" style="background:#eab308; color:black; border:none; padding:4px 10px; border-radius:4px; font-weight:bold; cursor:pointer;">🚀 Senden</button>
     </div>
   </div>
 
-  <!-- Stapel-Gebot anpassen -->
-  <div style="background:#18181b; padding:6px; border-radius:6px; border:1px solid #27272a; display:flex; justify-content:space-between; align-items:center;">
-    <div style="color:#facc15; font-weight:bold;">Gesamtgebot (Stapel):</div>
-    <div style="display:flex; align-items:center; gap:4px;">
-      <button onclick="Game6Admin.addBid(-1)" style="background:#dc2626; color:white; border:none; padding:4px 10px; border-radius:4px; font-weight:bold; cursor:pointer;">-1</button>
-      <span id="g6-adm-bid-disp" style="font-weight:900; font-size:15px; min-width:25px; text-align:center; color:#facc15;">0</span>
-      <button onclick="Game6Admin.addBid(1)" style="background:#16a34a; color:white; border:none; padding:4px 10px; border-radius:4px; font-weight:bold; cursor:pointer;">+1</button>
+  <!-- Sektion 3: Gebot & Fold -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+    <!-- Gebot Steuerung -->
+    <div style="background:#18181b; padding:6px; border-radius:6px; border:1px solid #27272a; display:flex; flex-direction:column; justify-content:space-between; gap:4px;">
+      <div style="color:#facc15; font-weight:bold;">Höchstgebot:</div>
+      <div style="display:flex; align-items:center; justify-content:space-between;">
+        <button onclick="Game6Admin.addBid(-1)" style="background:#dc2626; color:white; border:none; padding:4px 10px; border-radius:4px; font-weight:bold; font-size:11px; cursor:pointer;">-1</button>
+        <span id="g6-adm-bid-disp" style="font-weight:900; font-size:16px; text-align:center; color:#facc15;">0</span>
+        <button onclick="Game6Admin.addBid(1)" style="background:#16a34a; color:white; border:none; padding:4px 10px; border-radius:4px; font-weight:bold; font-size:11px; cursor:pointer;">+1</button>
+      </div>
+    </div>
+
+    <!-- Challenge Performer -->
+    <div style="background:#18181b; padding:6px; border-radius:6px; border:1px solid #27272a; display:flex; flex-direction:column; justify-content:space-between; gap:4px;">
+      <label style="color:#a1a1aa; font-weight:bold;">Challenge Performer:</label>
+      <div style="display:flex; gap:3px;">
+        <select id="g6-adm-performer-select" style="flex-grow:1; background:#09090b; color:white; border:1px solid #27272a; padding:3px; border-radius:4px; font-size:10px;"></select>
+        <button onclick="Game6Admin.startChallenge()" style="background:#16a34a; color:white; border:none; padding:3px 6px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:10px;">▶️</button>
+      </div>
     </div>
   </div>
 
-  <!-- FOLD Status der aktuellen Bieter -->
+  <!-- Sektion 4: Fold Status -->
   <div style="background:#18181b; padding:6px; border-radius:6px; border:1px solid #27272a;">
-    <div style="color:#ef4444; font-weight:bold; margin-bottom:4px;">Spieler Folden (Klick = Raus):</div>
-    <div id="g6-adm-out-toggles" style="display:grid; grid-template-columns:1fr 1fr; gap:4px;"></div>
+    <div style="color:#ef4444; font-weight:bold; margin-bottom:3px;">Fold Status (Klick = Raus):</div>
+    <div id="g6-adm-out-toggles" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:3px;"></div>
   </div>
 
-  <!-- MANUELL IN DIE MITTE HOLEN (Rate-Modus starten) -->
-  <div style="display:flex; flex-direction:column; gap:4px; background:#18181b; padding:6px; border-radius:6px; border:1px solid #27272a;">
-    <label style="color:#a1a1aa;">Teammate in die Mitte holen (Challenge):</label>
-    <div style="display:flex; gap:4px;">
-      <select id="g6-adm-performer-select" style="flex-grow:1; background:#09090b; color:white; border:1px solid #27272a; padding:4px; border-radius:4px; font-size:11px;"></select>
-      <button onclick="Game6Admin.startChallenge()" style="background:#16a34a; color:white; border:none; padding:4px 8px; border-radius:4px; font-weight:bold; cursor:pointer;">🚀 In die Mitte</button>
+  <!-- Sektion 5: Punkte vergeben (Direkte Textfelder) -->
+  <div style="background:#18181b; padding:6px; border-radius:6px; border:1px solid #27272a; display: flex; flex-direction: column; gap: 4px;">
+    <div style="color:#38bdf8; font-weight:bold;">Punkte vergeben:</div>
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; background: #09090b; padding: 4px 6px; border-radius: 4px; border: 1px solid #38bdf840;">
+        <span style="color: #60a5fa; font-weight: bold; font-size: 10px;">Blau:</span>
+        <input type="number" id="g6-score-input-blau" onchange="Game6Admin.setPoints('blau', this.value)" style="width: 45px; background: #18181b; color: white; border: 1px solid #27272a; text-align: center; border-radius: 3px; font-size: 11px; font-weight: bold;" />
+      </div>
+      <div style="display: flex; align-items: center; justify-content: space-between; background: #09090b; padding: 4px 6px; border-radius: 4px; border: 1px solid #ef444440;">
+        <span style="color: #f87171; font-weight: bold; font-size: 10px;">Rot:</span>
+        <input type="number" id="g6-score-input-rot" onchange="Game6Admin.setPoints('rot', this.value)" style="width: 45px; background: #18181b; color: white; border: 1px solid #27272a; text-align: center; border-radius: 3px; font-size: 11px; font-weight: bold;" />
+      </div>
+      <div style="display: flex; align-items: center; justify-content: space-between; background: #09090b; padding: 4px 6px; border-radius: 4px; border: 1px solid #22c55e40;">
+        <span style="color: #4ade80; font-weight: bold; font-size: 10px;">Grün:</span>
+        <input type="number" id="g6-score-input-gruen" onchange="Game6Admin.setPoints('gruen', this.value)" style="width: 45px; background: #18181b; color: white; border: 1px solid #27272a; text-align: center; border-radius: 3px; font-size: 11px; font-weight: bold;" />
+      </div>
+      <div style="display: flex; align-items: center; justify-content: space-between; background: #09090b; padding: 4px 6px; border-radius: 4px; border: 1px solid #eab30840;">
+        <span style="color: #facc15; font-weight: bold; font-size: 10px;">Gelb:</span>
+        <input type="number" id="g6-score-input-gelb" onchange="Game6Admin.setPoints('gelb', this.value)" style="width: 45px; background: #18181b; color: white; border: 1px solid #27272a; text-align: center; border-radius: 3px; font-size: 11px; font-weight: bold;" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Sektion 6: Moderator Live-Abhak-Liste -->
+  <div style="background:#18181b; padding:6px; border-radius:6px; border:1px solid #3f3f46;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+      <span style="color:#22c55e; font-weight:bold; font-size:11px;">✅ Abhak-Liste (<span id="g6-adm-checked-count">0</span> / <span id="g6-adm-target-bid">0</span>)</span>
+      <button onclick="Game6Admin.resetChecklist()" style="background:#27272a; color:#a1a1aa; border:1px solid #3f3f46; padding:1px 5px; border-radius:3px; font-size:8px; cursor:pointer;">Reset Haken</button>
+    </div>
+    
+    <div id="g6-adm-answers-grid" style="display:grid; grid-template-columns: repeat(2, 1fr); gap:2px; max-height: none; overflow: visible;">
+      <div style="color:#71717a; grid-column: span 2; text-align:center; padding:6px;">Keine Kategorie geladen</div>
     </div>
   </div>
 
   <div style="display:flex; justify-content:flex-end;">
-    <button onclick="Game6Admin.resetRound()" style="background:#27272a; color:#a1a1aa; border:1px solid #3f3f46; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:10px;">Reset Runde</button>
+    <button onclick="Game6Admin.resetRound()" style="background:#27272a; color:#a1a1aa; border:1px solid #3f3f46; padding:4px 10px; border-radius:4px; cursor:pointer; font-size:10px; font-weight: bold;">🔄 Aktuelle Runde Resetten</button>
   </div>
 </div>

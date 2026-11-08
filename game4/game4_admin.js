@@ -12,14 +12,61 @@ window.Game4Admin = {
 
     await this.loadSongsFromSupabase();
     await this.loadGame4State();
+    await this.fetchCaptainSubmissions();
 
-    // Live lauschen, falls sich game4_state ändert
+    // Live lauschen auf game4_state Änderungen
     supabaseClient
       .channel('game4-admin-state-sync')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'game4_state' }, payload => {
         if (payload.new) this.updateAdminScoreUI(payload.new);
       })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'game4_submissions' }, () => {
+        this.fetchCaptainSubmissions();
+      })
       .subscribe();
+  },
+
+  async fetchCaptainSubmissions() {
+    try {
+      const { data, error } = await supabaseClient
+        .from('game4_submissions')
+        .select('*');
+
+      if (!error && data) {
+        data.forEach(sub => {
+          const el = document.getElementById(`g4-sub-${sub.team_id}`);
+          if (el) {
+            el.innerText = sub.answer ? `"${sub.answer}"` : 'Keine Antwort';
+            el.style.color = sub.answer ? '#4ade80' : '#71717a';
+          }
+        });
+      }
+    } catch (e) {}
+  },
+
+  // Alle Captain-Antworten aus der Tabelle löschen
+  async clearCaptainSubmissions() {
+    try {
+      const { error } = await supabaseClient
+        .from('game4_submissions')
+        .delete()
+        .neq('id', 0); // Löscht alle Zeilen in der Tabelle
+
+      if (!error) {
+        console.log("🧹 Alle Captain-Antworten wurden gelöscht.");
+        ['blau', 'rot', 'gruen', 'gelb'].forEach(t => {
+          const el = document.getElementById(`g4-sub-${t}`);
+          if (el) {
+            el.innerText = 'Warte...';
+            el.style.color = '#71717a';
+          }
+        });
+      } else {
+        console.error("Fehler beim Löschen der Antworten:", error);
+      }
+    } catch (e) {
+      console.error("Ausnahmefehler beim Löschen:", e);
+    }
   },
 
   async loadGame4State() {
@@ -45,10 +92,8 @@ window.Game4Admin = {
   },
 
   async addPoints(team, amount) {
-    // Aktuellen Wert holen und anpassen
     this.currentRoundScores[team] = Math.max(0, (this.currentRoundScores[team] || 0) + amount);
 
-    // Direkt in game4_state speichern
     await supabaseClient.from('game4_state').update({
       [`punkte_runde_${team}`]: this.currentRoundScores[team]
     }).eq('id', 1);

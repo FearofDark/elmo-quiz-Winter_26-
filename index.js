@@ -88,9 +88,10 @@ async function ladeDatenbankZustand() {
     const teams = ['blau', 'rot', 'gruen', 'gelb'];
     teams.forEach(t => {
       const nameEl = document.getElementById(`header-name-${t}`);
-      if (nameEl && state[`team_${t}_name`]) {
+      if (nameEl) {
+        const customName = state[`team_${t}_name`] || t.toUpperCase();
         const emoji = t === 'blau' ? '🔵' : t === 'rot' ? '🔴' : t === 'gruen' ? '🟢' : '🟡';
-        nameEl.innerText = `${emoji} TEAM ${state[`team_${t}_name`].toUpperCase()}`;
+        nameEl.innerText = `${emoji} ${customName.toUpperCase()}`;
       }
 
       const gesamtEl = document.getElementById(`punkte-gesamt-${t}`);
@@ -126,9 +127,10 @@ function initGlobalGameStateListener() {
           }
 
           const nameEl = document.getElementById(`header-name-${t}`);
-          if (nameEl && newData[`team_${t}_name`]) {
+          if (nameEl) {
+            const customName = newData[`team_${t}_name`] || t.toUpperCase();
             const emoji = t === 'blau' ? '🔵' : t === 'rot' ? '🔴' : t === 'gruen' ? '🟢' : '🟡';
-            nameEl.innerText = `${emoji} TEAM ${newData[`team_${t}_name`].toUpperCase()}`;
+            nameEl.innerText = `${emoji} ${customName.toUpperCase()}`;
           }
         });
 
@@ -155,7 +157,6 @@ function aktualisiereSpielerSlotUI(slotId, name, team, isCaptain) {
       targetContainerId = `container-${team}`;
     }
 
-    // Captain-Status via CSS-Klasse setzen (aktiviert die Krone in index.css)[cite: 8]
     box.classList.toggle('is-captain', isCaptain === true);
 
     const targetContainer = document.getElementById(targetContainerId);
@@ -171,7 +172,6 @@ function aktualisiereSpielerSlotUI(slotId, name, team, isCaptain) {
   }
 }
 
-// DYNAMISCHER SPIELE-LOADER FÜR DIE BÜHNE
 async function buehneRendern(gameMode) {
   const stage = document.getElementById('dynamic-game-stage');
   aktuellesGame = gameMode;
@@ -190,7 +190,6 @@ async function buehneRendern(gameMode) {
     return;
   }
 
-  // Lade HTML & JS des entsprechenden Spiels (game1 bis game6)
   try {
     const response = await fetch(`${gameMode}/${gameMode}.html`);
     if (!response.ok) throw new Error("Spiel-HTML nicht gefunden");

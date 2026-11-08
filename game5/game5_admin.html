@@ -9,7 +9,7 @@
         </div>
     </div>
 
-    <!-- Runden-Navigation -->
+    <!-- Runden-Navigation & Reset -->
     <div style="background: #18181b; border: 1px solid #27272a; padding: 12px; border-radius: 8px; display: flex; flex-direction: column; gap: 8px;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <span style="font-size: 12px; color: #38bdf8; font-weight: bold;" id="admin-game5-round-label">🎯 Runde 1 / 20</span>
@@ -24,6 +24,9 @@
             <div style="border-top: 1px solid #27272a; padding-top: 4px;"><strong>Ziel-Objekt:</strong> <span id="admin-target-name">-</span> <br><span style="font-size: 11px; color: #c084fc;" id="admin-target-meter">-</span></div>
             <div style="color: #c084fc; font-size: 11px; border-top: 1px solid #27272a; padding-top: 4px;">Lösungs-Faktor: <span id="admin-target-factor">-</span></div>
         </div>
+
+        <!-- Reset Button -->
+        <button onclick="Game5Admin.resetGame()" class="btn" style="background: #dc2626; color: white; padding: 6px; font-size: 11px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 4px;">🔄 Komplett-Reset (Zurück zu Runde 1 & Punkte 0)</button>
     </div>
 
     <!-- Master-Reveal Schalter -->
@@ -35,51 +38,13 @@
         </div>
     </div>
 
-    <!-- Team-Tipps aufdecken & Punkte vergeben -->
-    <div style="display: flex; flex-direction: column; gap: 8px;">
-        
-        <!-- Team Blau -->
-        <div style="background: #09090b; padding: 8px; border-radius: 6px; border-left: 3px solid #38bdf8; display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-size: 11px;" id="admin-label-t1">Blau: -</span>
-            <div style="display: flex; gap: 4px;">
-                <button onclick="Game5Admin.revealTeam('reveal_t1')" style="background: #2563eb; color: white; border: none; padding: 3px 8px; font-size: 10px; border-radius: 3px; cursor: pointer;">Aufdecken</button>
-                <button onclick="Game5Admin.addPoints('punkte_blau', 1)" style="background: #047857; color: white; border: none; padding: 3px 6px; font-size: 10px; border-radius: 3px; cursor: pointer;" title="Punkt dazu">+1 Pkt</button>
-                <button onclick="Game5Admin.addPoints('punkte_blau', -1)" style="background: #b91c1c; color: white; border: none; padding: 3px 6px; font-size: 10px; border-radius: 3px; cursor: pointer;" title="Punkt abziehen">-1</button>
-            </div>
-        </div>
-
-        <!-- Team Rot -->
-        <div style="background: #09090b; padding: 8px; border-radius: 6px; border-left: 3px solid #f87171; display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-size: 11px;" id="admin-label-t2">Rot: -</span>
-            <div style="display: flex; gap: 4px;">
-                <button onclick="Game5Admin.revealTeam('reveal_t2')" style="background: #dc2626; color: white; border: none; padding: 3px 8px; font-size: 10px; border-radius: 3px; cursor: pointer;">Aufdecken</button>
-                <button onclick="Game5Admin.addPoints('punkte_rot', 1)" style="background: #047857; color: white; border: none; padding: 3px 6px; font-size: 10px; border-radius: 3px; cursor: pointer;">+1 Pkt</button>
-                <button onclick="Game5Admin.addPoints('punkte_rot', -1)" style="background: #b91c1c; color: white; border: none; padding: 3px 6px; font-size: 10px; border-radius: 3px; cursor: pointer;">-1</button>
-            </div>
-        </div>
-
-        <!-- Team Grün -->
-        <div style="background: #09090b; padding: 8px; border-radius: 6px; border-left: 3px solid #4ade80; display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-size: 11px;" id="admin-label-t3">Grün: -</span>
-            <div style="display: flex; gap: 4px;">
-                <button onclick="Game5Admin.revealTeam('reveal_t3')" style="background: #16a34a; color: white; border: none; padding: 3px 8px; font-size: 10px; border-radius: 3px; cursor: pointer;">Aufdecken</button>
-                <button onclick="Game5Admin.addPoints('punkte_gruen', 1)" style="background: #047857; color: white; border: none; padding: 3px 6px; font-size: 10px; border-radius: 3px; cursor: pointer;">+1 Pkt</button>
-                <button onclick="Game5Admin.addPoints('punkte_gruen', -1)" style="background: #b91c1c; color: white; border: none; padding: 3px 6px; font-size: 10px; border-radius: 3px; cursor: pointer;">-1</button>
-            </div>
-        </div>
-
-        <!-- Team Gelb -->
-        <div style="background: #09090b; padding: 8px; border-radius: 6px; border-left: 3px solid #eab308; display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-size: 11px;" id="admin-label-t4">Gelb: -</span>
-            <div style="display: flex; gap: 4px;">
-                <button onclick="Game5Admin.revealTeam('reveal_t4')" style="background: #ca8a04; color: white; border: none; padding: 3px 8px; font-size: 10px; border-radius: 3px; cursor: pointer;">Aufdecken</button>
-                <button onclick="Game5Admin.addPoints('punkte_gelb', 1)" style="background: #047857; color: white; border: none; padding: 3px 6px; font-size: 10px; border-radius: 3px; cursor: pointer;">+1 Pkt</button>
-                <button onclick="Game5Admin.addPoints('punkte_gelb', -1)" style="background: #b91c1c; color: white; border: none; padding: 3px 6px; font-size: 10px; border-radius: 3px; cursor: pointer;">-1</button>
-            </div>
+    <!-- Team-Tipps aufdecken & Punkte vergeben (Sortiert: Weiteste zuerst) -->
+    <div style="display: flex; flex-direction: column; gap: 6px;">
+        <div style="font-size: 11px; color: #a1a1aa; font-weight: bold; margin-bottom: 2px;">👑 Teams (Sortiert nach Abstand: Weiteste zuerst):</div>
+        <div id="admin-teams-container" style="display: flex; flex-direction: column; gap: 8px;">
+            <!-- Wird dynamisch gefüllt -->
         </div>
     </div>
-
-    <button onclick="Game5Admin.revealAll()" style="background: #8b5cf6; color: white; border: none; padding: 8px; font-size: 11px; border-radius: 6px; font-weight: bold; cursor: pointer;">⚡ Alle Tipps & Reveal sofort zeigen</button>
 </div>
 
 <script src="game5/game5_admin.js"></script>

@@ -8,25 +8,29 @@ window.Game1Player = {
     this.fetchTeamNames();
     this.fetchAndRender();
 
-    supabaseClient.channel('game1-state-channel')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'game1_state', filter: 'id=eq.1' }, payload => {
-        this.renderUI(payload.new);
-      })
-      .subscribe();
+    if (typeof supabaseClient !== 'undefined') {
+      supabaseClient.channel('game1-state-channel')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'game1_state', filter: 'id=eq.1' }, payload => {
+          if (payload.new) this.renderUI(payload.new);
+        })
+        .subscribe();
+    }
 
-    setInterval(() => this.fetchSilent(), 2000);
+    setInterval(() => this.fetchSilent(), 3000);
   },
 
   async fetchTeamNames() {
-    const { data } = await supabaseClient.from('game_state').select('team_blau_name, team_rot_name, team_gruen_name, team_gelb_name').eq('id', 1).maybeSingle();
-    if (data) {
-      this.teamNamesCache = {
-        blau: data.team_blau_name || 'Team Blau',
-        rot: data.team_rot_name || 'Team Rot',
-        gruen: data.team_gruen_name || 'Team Grün',
-        gelb: data.team_gelb_name || 'Team Gelb'
-      };
-    }
+    try {
+      const { data } = await supabaseClient.from('game_state').select('team_blau_name, team_rot_name, team_gruen_name, team_gelb_name').eq('id', 1).maybeSingle();
+      if (data) {
+        this.teamNamesCache = {
+          blau: data.team_blau_name || 'Team Blau',
+          rot: data.team_rot_name || 'Team Rot',
+          gruen: data.team_gruen_name || 'Team Grün',
+          gelb: data.team_gelb_name || 'Team Gelb'
+        };
+      }
+    } catch (e) { /* Fallback */ }
   },
 
   updateContainerPoints(scores, forceShow = false) {
@@ -49,21 +53,27 @@ window.Game1Player = {
   },
 
   async fetchSilent() {
-    const { data } = await supabaseClient.from('game1_state').select('*').eq('id', 1).maybeSingle();
-    if (data) {
-      const stateStr = JSON.stringify(data);
-      if (stateStr !== this.lastStateString) {
-        this.renderUI(data);
-      } else {
-        this.updateContainerPoints(data.team_scores);
+    try {
+      const { data } = await supabaseClient.from('game1_state').select('*').eq('id', 1).maybeSingle();
+      if (data) {
+        const stateStr = JSON.stringify(data);
+        if (stateStr !== this.lastStateString) {
+          this.renderUI(data);
+        } else {
+          this.updateContainerPoints(data.team_scores);
+        }
       }
-    }
+    } catch (e) { /* Netzwerkpuffer */ }
   },
 
   async fetchAndRender() {
-    await this.fetchTeamNames();
-    const { data } = await supabaseClient.from('game1_state').select('*').eq('id', 1).maybeSingle();
-    if (data) this.renderUI(data);
+    try {
+      await this.fetchTeamNames();
+      const { data } = await supabaseClient.from('game1_state').select('*').eq('id', 1).maybeSingle();
+      if (data) this.renderUI(data);
+    } catch (e) {
+      this.renderUI({ status: 'neutral', team_scores: { blau: 0, rot: 0, gruen: 0, gelb: 0 } });
+    }
   },
 
   renderUI(state) {
@@ -99,7 +109,7 @@ window.Game1Player = {
     if (badge) badge.innerText = `Runde ${state.current_round || 1} / ${state.max_rounds || 20}`;
     if (title) title.innerText = state.current_category || "Wavelength";
 
-    if (!MY_SLOT) {
+    if (typeof MY_SLOT === 'undefined' || !MY_SLOT) {
       stage.innerHTML = `<div style="color: #ef4444; font-size: 16px; padding: 40px; text-align: center;">Kein Spieler-Slot zugewiesen!</div>`;
       return;
     }
@@ -216,13 +226,10 @@ window.Game1Player = {
                   </div>
 
                   <div style="background: #27272a; height: 18px; border-radius: 9px; position: relative; overflow: visible; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);">
-                    <!-- Transparenter goldener Ziel-Bereich (erscheint erst mit dem Marker zusammen) -->
-                    <div id="gold-zone" style="position: absolute; left: ${zoneLeft}%; width: ${zoneWidth}%; top: 0; bottom: 0; background: rgba(245, 158, 11, 0.25); border-left: 1px dashed rgba(245, 158, 11, 0.6); border-right: 1px dashed rgba(245, 158, 11, 0.6); z-index: 5; opacity: 0; transition: opacity 0.8s ease;"></div>
+                    <div id="gold-zone" style="position: absolute; left: ${zoneLeft}\%; width:${zoneWidth}%; top: 0; bottom: 0; background: rgba(245, 158, 11, 0.25); border-left: 1px dashed rgba(245, 158, 11, 0.6); border-right: 1px dashed rgba(245, 158, 11, 0.6); z-index: 5; opacity: 0; transition: opacity 0.8s ease;"></div>
                     
-                    <!-- Animierter Team-Balken -->
-                    <div class="reveal-bar-${t}" style="background: linear-gradient(90deg, ${col}aa, ${col}); width: 0%; height: 100%; transition: width 12s cubic-bezier(0.25, 1, 0.5, 1); border-radius: 9px; box-shadow: 0 0 10px ${col}66; position: relative; z-index: 2;"></div>
+                    <div class="reveal-bar-${t}" style="background: linear-gradient(90deg, ${col}aa, ${col}); width: 0\%; height: 100\%; transition: width 12s cubic-bezier(0.25, 1, 0.5, 1); border-radius: 9px; box-shadow: 0 0 10px${col}66; position: relative; z-index: 2;"></div>
                     
-                    <!-- Exakter goldener Ziel-Marker -->
                     <div id="gold-marker" style="position: absolute; left: ${secretPercent}%; top: -7px; bottom: -7px; width: 5px; background: #f59e0b; box-shadow: 0 0 18px #f59e0b, 0 0 8px #fff; z-index: 10; opacity: 0; transition: opacity 0.8s ease;"></div>
                   </div>
 
@@ -250,7 +257,6 @@ window.Game1Player = {
       });
     }, 300);
 
-    // Nach 13 Sekunden (wenn die Balken fertig gefahren sind) blenden der goldene Strich und die Punkte-Zone ein
     setTimeout(() => {
       document.querySelectorAll('#gold-marker').forEach(marker => {
         marker.style.opacity = '1';
@@ -288,4 +294,19 @@ window.Game1Player = {
   }
 };
 
-window.Game1Player.init();
+// Lokale Neulade-Funktion für Spiel 1 (Kameras bleiben aktiv)
+window.reloadGame1Only = async function() {
+  console.log("🔄 Spiel 1 wird lokal neu initialisiert...");
+  const stage = document.getElementById('g1-stage');
+  if (stage) {
+    stage.innerHTML = `<div style="color: #facc15; font-size: 14px;">Spiel 1 wird neu geladen...</div>`;
+  }
+  await window.Game1Player.fetchTeamNames();
+  await window.Game1Player.fetchAndRender();
+};
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => window.Game1Player.init());
+} else {
+  window.Game1Player.init();
+}
