@@ -11,6 +11,21 @@ function getStreamUrl(slotId) {
   return `https://vdo.ninja/?view=${slotId}&solo=1&password=${pass}${perfParams}`;
 }
 
+// Hilfsfunktion: Erzwingt das saubere Nachladen aller iFrames bei F5
+function reloadAllIframes() {
+  const slots = ['player_1', 'player_2', 'player_3', 'player_4', 'player_5', 'player_6', 'player_7', 'player_8', 'host_cam'];
+  slots.forEach(slotId => {
+    const iframe = document.getElementById(`iframe-${slotId}`);
+    if (iframe) {
+      const targetUrl = getStreamUrl(slotId);
+      iframe.src = '';
+      setTimeout(() => {
+        iframe.src = targetUrl;
+      }, 50);
+    }
+  });
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   if (!MY_SLOT) {
     const modal = document.getElementById('player-setup-modal');
@@ -110,6 +125,9 @@ async function ladeDatenbankZustand() {
       aktualisiereSpielerSlotUI(slot.slot_id, slot.spieler_name, slot.team, slot.is_captain);
     });
   }
+
+  // Stellt sicher, dass nach einem F5-Reload alle iFrames sauber geladen werden
+  reloadAllIframes();
 }
 
 function initGlobalGameStateListener() {
@@ -227,7 +245,7 @@ channel
         oldBox.classList.remove('in-focus-stage');
         oldBox.innerHTML = `
           <div class="cam-title"><span id="title-${aktuellerFokusSlotId}">Spieler</span></div>
-          <iframe id="iframe-${aktuellerFokusSlotId}" src="${getStreamUrl(aktuellerFokusSlotId)}" allow="autoplay"></iframe>
+          <iframe id="iframe-${aktuellerFokusSlotId}" src="${getStreamUrl(aktuellerFokusSlotId)}" allow="autoplay; camera; microphone; fullscreen; display-capture"></iframe>
         `;
         ladeDatenbankZustand();
       }
@@ -252,7 +270,7 @@ channel
         stage.innerHTML = `
           <div class="fokus-stage-box" style="padding: 10px; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;">
             <div class="fokus-cam-wrapper ${currentTeamClass}" id="fokus-wrapper" style="width: 100%; max-width: 900px; height: 520px; border-radius: 16px; overflow: hidden;">
-              <iframe src="${getStreamUrl(slotId)}" allow="autoplay" style="width: 100%; height: 100%;"></iframe>
+              <iframe src="${getStreamUrl(slotId)}" allow="autoplay; camera; microphone; fullscreen; display-capture" style="width: 100%; height: 100%;"></iframe>
             </div>
           </div>
         `;
@@ -264,7 +282,7 @@ channel
           oldBox.classList.remove('in-focus-stage');
           oldBox.innerHTML = `
             <div class="cam-title"><span id="title-${aktuellerFokusSlotId}">Spieler</span></div>
-            <iframe id="iframe-${aktuellerFokusSlotId}" src="${getStreamUrl(aktuellerFokusSlotId)}" allow="autoplay"></iframe>
+            <iframe id="iframe-${aktuellerFokusSlotId}" src="${getStreamUrl(aktuellerFokusSlotId)}" allow="autoplay; camera; microphone; fullscreen; display-capture"></iframe>
           `;
         }
         aktuellerFokusSlotId = null;
