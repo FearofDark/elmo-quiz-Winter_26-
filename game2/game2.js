@@ -211,12 +211,13 @@ window.Game2Player = {
       if (badge) badge.innerText = `Kontinent: ${currentState.current_continent || 'Welt'}`;
       if (title) title.innerText = `Land im Fokus: ${currentState.current_land || 'Auswahl'}`;
 
+      // HIER GEÄNDERT: Moderner, cleaner weißer Rahmen statt goldenem Rand
       stage.innerHTML = `
         <div id="g2-container-points" style="position: absolute; top: 12px; right: 16px; display: flex; gap: 6px; z-index: 999;"></div>
-        <div style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 12px; box-sizing: border-box; padding: 10px;">
-          <div style="background: #18181b; padding: 25px; border-radius: 12px; border: 2px solid #facc15; max-width: 750px; box-shadow: 0 4px 20px rgba(0,0,0,0.6);">
-            <div style="font-size: 12px; color: #facc15; text-transform: uppercase; margin-bottom: 6px; font-weight: bold; letter-spacing: 1px;">⚔️ EROBERUNGS-FRAGE (Stufe ${currentState.current_difficulty || 1} / 4)</div>
-            <div style="font-size: 22px; font-weight: bold; color: white; line-height: 1.3; margin-top: 8px;">"${currentState.current_question || ''}"</div>
+        <div style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 12px; box-sizing: border-box; padding: 15px;">
+          <div style="background: linear-gradient(135deg, #18181b 0%, #09090b 100%); padding: 35px 40px; border-radius: 16px; border: 2px solid rgba(255, 255, 255, 0.8); max-width: 800px; width: 100%; box-shadow: 0 15px 35px rgba(0,0,0,0.8), 0 0 20px rgba(255,255,255,0.1); backdrop-filter: blur(10px);">
+            <div style="font-size: 11px; color: #38bdf8; text-transform: uppercase; margin-bottom: 10px; font-weight: 800; letter-spacing: 2px;">⚔️ EROBERUNGS-FRAGE (Stufe ${currentState.current_difficulty || 1} / 4)</div>
+            <div style="font-size: 26px; font-weight: 700; color: #ffffff; line-height: 1.4; margin-top: 10px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">"${currentState.current_question || ''}"</div>
           </div>
         </div>
       `;
@@ -373,7 +374,6 @@ window.Game2Player = {
   }
 };
 
-// Externe Funktion zum Neuladen NUR des Spiels (lässt Kameras/Streams unberührt)
 window.reloadGame2Only = async function() {
   console.log("🔄 Spiel 2 wird lokal neu initialisiert...");
   const stage = document.getElementById('g2-stage');
@@ -385,7 +385,6 @@ window.reloadGame2Only = async function() {
   await window.Game2Player.fetchCountriesAndRender(true);
 };
 
-// Start-Logik mit DOM-Ready Schutz
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => window.Game2Player.init());
 } else {
