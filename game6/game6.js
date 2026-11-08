@@ -89,7 +89,6 @@ const Game6 = {
       return;
     }
 
-    // Punkte aktualisieren
     const scoreBlau = document.getElementById('g6-score-blau');
     const scoreRot = document.getElementById('g6-score-rot');
     const scoreGruen = document.getElementById('g6-score-gruen');
@@ -148,7 +147,7 @@ const Game6 = {
         if (this.renderedFocusSlot !== focusedSlot || !focusWrap.hasChildNodes()) {
           this.renderedFocusSlot = focusedSlot;
           const streamUrl = typeof getStreamUrl === 'function' ? getStreamUrl(focusedSlot) : `https://vdo.ninja/?view=${focusedSlot}&solo=1&room=DieElmigos_Stream&password=mikestinkt&quality=2&framerate=24&bitrate=500&max_bitrate=800&codec=vp9`;
-          focusWrap.innerHTML = `<iframe src="${streamUrl}" allow="autoplay" style="width:100%; height:100%; border:none;"></iframe>`;
+          focusWrap.innerHTML = `<iframe src="${streamUrl}" allow="autoplay; camera; microphone; fullscreen; display-capture" style="width:100%; height:100%; border:none;"></iframe>`;
         }
       }
     } else {
@@ -183,7 +182,7 @@ const Game6 = {
         if (wrapEl && (this.activeRenderedSlots[idx] !== slotId || !wrapEl.hasChildNodes())) {
           this.activeRenderedSlots[idx] = slotId;
           const streamUrl = typeof getStreamUrl === 'function' ? getStreamUrl(slotId) : `https://vdo.ninja/?view=${slotId}&solo=1&room=DieElmigos_Stream&password=mikestinkt&quality=2&framerate=24&bitrate=500&max_bitrate=800&codec=vp9`;
-          wrapEl.innerHTML = `<iframe src="${streamUrl}" allow="autoplay" style="width:100%; height:100%; border:none;"></iframe>`;
+          wrapEl.innerHTML = `<iframe src="${streamUrl}" allow="autoplay; camera; microphone; fullscreen; display-capture" style="width:100%; height:100%; border:none;"></iframe>`;
         }
 
         const isOut = outSlots.includes(slotId);
@@ -212,7 +211,6 @@ const Game6 = {
 };
 
 window.reloadGame6Only = async function() {
-  console.log("🔄 Spiel 6 wird lokal neu initialisiert...");
   await Game6.fullResync();
 };
 
