@@ -218,7 +218,6 @@ window.Game2Player = {
             <div style="font-size: 12px; color: #facc15; text-transform: uppercase; margin-bottom: 6px; font-weight: bold; letter-spacing: 1px;">⚔️ EROBERUNGS-FRAGE (Stufe ${currentState.current_difficulty || 1} / 4)</div>
             <div style="font-size: 22px; font-weight: bold; color: white; line-height: 1.3; margin-top: 8px;">"${currentState.current_question || ''}"</div>
           </div>
-          <div style="color: #a1a1aa; font-size: 13px; font-style: italic;">Besprecht euch im Team. Der Admin wertet gleich aus!</div>
         </div>
       `;
       this.updateContainerPoints(currentState.team_scores);
