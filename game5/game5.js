@@ -57,21 +57,15 @@ window.Game5 = {
     if (this.subscription) return;
 
     this.subscription = supabaseClient
-      .channel('public:game5_combined')
+      .channel('public:game5_combined_db')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'game5_state' }, async payload => {
         if (payload.new) {
           const oldRound = this.state?.aktive_runde;
-          const oldReveal = this.state?.reveal_aktiv;
           this.state = payload.new;
-          
-          if (!oldReveal && this.state.reveal_aktiv && this.state.richtige_groesse) {
-            this.state.skalierung = this.state.richtige_groesse;
-          }
 
           if (oldRound !== this.state.aktive_runde) {
             await this.loadObjectDetails(this.state.aktive_runde);
           } else {
-            // Ignoriere Realtime-Updates, während der lokale Spieler selbst am Regler zieht (verhindert Lagging)
             if (!this.isLocalDragging) this.render();
           }
         }
@@ -79,7 +73,7 @@ window.Game5 = {
       .subscribe();
 
     this.slotSubscription = supabaseClient
-      .channel('public:game5_slots')
+      .channel('public:game5_slots_db')
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'player_slots', filter: `slot_id=eq.${this.mySlotId}` }, async payload => {
         if (payload.new) {
           await this.fetchPlayerSlotInfo();
@@ -87,6 +81,11 @@ window.Game5 = {
         }
       })
       .subscribe();
+  },
+
+  getTeamScaleColumn() {
+    const map = { 'blau': 'skalierung_team_1', 'rot': 'skalierung_team_2', 'gruen': 'skalierung_team_3', 'gelb': 'skalierung_team_4' };
+    return map[this.myTeam] || 'skalierung_team_1';
   },
 
   render() {
@@ -130,9 +129,11 @@ window.Game5 = {
     const slider = document.getElementById('game5-slider');
     const scaleVal = document.getElementById('game5-scale-value');
 
+    // Holt exakt die Skalierung für das eigene Team aus der DB
+    const scaleCol = this.getTeamScaleColumn();
     const currentScale = (this.state.reveal_aktiv && this.state.richtige_groesse) 
       ? parseFloat(this.state.richtige_groesse) 
-      : (parseFloat(this.state.skalierung) || 1.0);
+      : (parseFloat(this.state[scaleCol]) || 1.0);
 
     const roundNum = this.state?.aktive_runde || 1;
 
@@ -191,9 +192,8 @@ window.Game5 = {
     if (slider && !this.isLocalDragging) slider.value = currentScale;
   },
 
-  // Robustes, flüssiges Skalieren ohne Lag durch Debouncing
   async onSliderChange(val) {
-    if (this.state?.reveal_aktiv) return;
+    if (this.state?.reveal_aktiv || !this.myTeam) return;
     this.isLocalDragging = true;
     const newScale = parseFloat(val);
 
@@ -206,21 +206,29 @@ window.Game5 = {
     if (this.dragTimeout) clearTimeout(this.dragTimeout);
 
     this.dragTimeout = setTimeout(async () => {
-      await supabaseClient.from('game5_state').update({ skalierung: newScale, updated_at: new Date() }).eq('id', 1);
+      const scaleCol = this.getTeamScaleColumn();
+      let updateObj = { updated_at: new Date() };
+      updateObj[scaleCol] = newScale;
+
+      await supabaseClient.from('game5_state').update(updateObj).eq('id', 1);
       setTimeout(() => { this.isLocalDragging = false; }, 150);
     }, 60);
   },
 
   async resetScale() {
-    if (this.state?.reveal_aktiv) return;
+    if (this.state?.reveal_aktiv || !this.myTeam) return;
     this.isLocalDragging = false;
-    await supabaseClient.from('game5_state').update({ skalierung: 1.0, updated_at: new Date() }).eq('id', 1);
+    const scaleCol = this.getTeamScaleColumn();
+    let updateObj = { updated_at: new Date() };
+    updateObj[scaleCol] = 1.0;
+    await supabaseClient.from('game5_state').update(updateObj).eq('id', 1);
   },
 
   async submitGuess() {
-    if (!this.isTeamCaptain) return;
+    if (!this.isTeamCaptain || !this.myTeam) return;
 
-    const currentScale = parseFloat(this.state?.skalierung) || 1.0;
+    const scaleCol = this.getTeamScaleColumn();
+    const currentScale = parseFloat(this.state?.[scaleCol]) || 1.0;
     const columnMapping = { 'blau': 'tipp_team_1', 'rot': 'tipp_team_2', 'gruen': 'tipp_team_3', 'gelb': 'tipp_team_4' };
     const targetColumn = columnMapping[this.myTeam];
 
@@ -246,7 +254,6 @@ window.Game5 = {
 };
 
 window.reloadGame5Only = async function() {
-  console.log("🔄 Spiel 5 wird lokal neu initialisiert...");
   await window.Game5.loadState();
 };
 
