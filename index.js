@@ -4,12 +4,11 @@ let MY_SLOT = localStorage.getItem('quiz_studio_my_slot') || null;
 let aktuellesGame = 'lottery';
 let aktuellerFokusSlotId = null;
 
-// Zentrale Funktion für alle performanten VDO.ninja Stream-Links im Studio (9 Kameras optimiert)
+// Zentrale Funktion für alle performanten VDO.ninja Stream-Links im Studio (Ohne Raum-Limitierung)
 function getStreamUrl(slotId) {
-  const room = "DieElmigos_Stream";
   const pass = "mikestinkt";
-  const perfParams = "&quality=2&framerate=24&bitrate=500&max_bitrate=800&codec=vp9";
-  return `https://vdo.ninja/?view=${slotId}&solo=1&room=${room}&password=${pass}${perfParams}`;
+  const perfParams = "&quality=2&framerate=24&bitrate=500&max_bitrate=800&codec=vp9&maxviews=100";
+  return `https://vdo.ninja/?view=${slotId}&solo=1&password=${pass}${perfParams}`;
 }
 
 window.addEventListener('DOMContentLoaded', () => {
