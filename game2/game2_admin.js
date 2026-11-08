@@ -6,6 +6,7 @@ window.Game2Admin = {
   countriesCache: [],
   currentState: {},
   expandedContinents: { 'Nordamerika': true },
+  claimedMilestones: {}, // Speichert bereits vergebene Meilensteine und Kontinent-Boni
 
   continentsStructure: {
     'Nordamerika': ['USA', 'Kanada', 'Mexico', 'Kuba'],
@@ -16,7 +17,7 @@ window.Game2Admin = {
   },
 
   async init() {
-    console.log("🛠️ Game2Admin initialisiert (Stabil).");
+    console.log("🛠️ Game2Admin initialisiert (Mit Länder- & Kontinent-Bonus Erkennung).");
     await this.loadQuestions();
     await this.loadCountries();
     await this.loadState();
@@ -67,6 +68,57 @@ window.Game2Admin = {
     this.renderAdminPanel();
   },
 
+  // Zählt die Länder pro Team
+  calculateTeamCountryCounts() {
+    const counts = { blau: 0, rot: 0, gruen: 0, gelb: 0 };
+    const allCountries = Object.values(this.continentsStructure).flat();
+    
+    allCountries.forEach(cName => {
+      const cData = this.countriesCache.find(c => c.name && c.name.toLowerCase() === cName.toLowerCase());
+      if (!cData) return;
+
+      let ownerTeam = null;
+      for (let i = 4; i >= 1; i--) {
+        const t = cData[`diff_${i}_team`];
+        if (t && t !== 'falsch') {
+          ownerTeam = t;
+          break;
+        }
+      }
+
+      if (ownerTeam && counts[ownerTeam] !== undefined) {
+        counts[ownerTeam]++;
+      }
+    });
+
+    return counts;
+  },
+
+  // Prüft, wem ein kompletter Kontinent gehört
+  getContinentOwner(contName) {
+    const countries = this.continentsStructure[contName];
+    let firstTeam = undefined;
+
+    for (const cName of countries) {
+      const cData = this.countriesCache.find(c => c.name && c.name.toLowerCase() === cName.toLowerCase());
+      if (!cData) return null;
+
+      let validCountryTeam = null;
+      for (let i = 4; i >= 1; i--) {
+        const t = cData[`diff_${i}_team`];
+        if (t && t !== 'falsch') {
+          validCountryTeam = t;
+          break;
+        }
+      }
+
+      if (!validCountryTeam) return null;
+      if (firstTeam === undefined) firstTeam = validCountryTeam;
+      else if (firstTeam !== validCountryTeam) return null;
+    }
+    return firstTeam;
+  },
+
   renderAdminPanel() {
     const container = document.getElementById('admin-game2-controls');
     if (!container) return;
@@ -82,6 +134,52 @@ window.Game2Admin = {
     const answerText = activeQuestionObj ? activeQuestionObj.answer : "";
     const teamColors = { blau: '#38bdf8', rot: '#f87171', gruen: '#4ade80', gelb: '#facc15' };
     const scores = this.currentState.team_scores || { blau: 0, rot: 0, gruen: 0, gelb: 0 };
+    
+    const countryCounts = this.calculateTeamCountryCounts();
+
+    // 1. Benachrichtigungen für Länder-Meilensteine (5, 10, 15...) generieren
+    let milestoneAlertsHtml = '';
+    Object.entries(countryCounts).forEach(([t, count]) => {
+      const currentMilestone = Math.floor(count / 5);
+      if (currentMilestone > 0) {
+        const milestoneKey = `country_${t}_${currentMilestone * 5}`;
+        if (!this.claimedMilestones[milestoneKey]) {
+          milestoneAlertsHtml += `
+            <div style="background: rgba(234, 179, 8, 0.15); border: 1px solid #eab308; padding: 10px 14px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+              <div style="display: flex; flex-direction: column; gap: 2px;">
+                <span style="color: #facc15; font-weight: bold; font-size: 11px;">⭐ LÄNDER-MEILENSTEIN (${count} Länder)</span>
+                <span style="color: #e4e4e7; font-size: 11px;">Team <strong style="color: ${teamColors[t]};">${t.toUpperCase()}</strong> hat ${count} Länder erobert!</span>
+              </div>
+              <button onclick="Game2Admin.claimBonus('${t}', '${milestoneKey}', ${currentMilestone}, 'Länder-Bonus (${count} Länder)')" style="background: #eab308; color: #000; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; font-size: 11px; cursor: pointer; white-space: nowrap;">
+                +${currentMilestone} Pkt vergeben
+              </button>
+            </div>
+          `;
+        }
+      }
+    });
+
+    // 2. Benachrichtigungen für Kontinent-Boni generieren
+    Object.keys(this.continentsStructure).forEach(contName => {
+      const owner = this.getContinentOwner(contName);
+      if (owner) {
+        const bonusPoints = contName === 'Europa' ? 4 : 2;
+        const continentKey = `continent_${contName}_${owner}`;
+        if (!this.claimedMilestones[continentKey]) {
+          milestoneAlertsHtml += `
+            <div style="background: rgba(56, 189, 248, 0.15); border: 1px solid #38bdf8; padding: 10px 14px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+              <div style="display: flex; flex-direction: column; gap: 2px;">
+                <span style="color: #38bdf8; font-weight: bold; font-size: 11px;">🌍 KONTINENT EROBERT (${contName})</span>
+                <span style="color: #e4e4e7; font-size: 11px;">Team <strong style="color: ${teamColors[owner]};">${owner.toUpperCase()}</strong> besitzt den gesamten Kontinent <strong>${contName}</strong>!</span>
+              </div>
+              <button onclick="Game2Admin.claimBonus('${owner}', '${continentKey}', ${bonusPoints}, 'Kontinent-Bonus (${contName})')" style="background: #38bdf8; color: #000; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; font-size: 11px; cursor: pointer; white-space: nowrap;">
+                +${bonusPoints} Pkt vergeben
+              </button>
+            </div>
+          `;
+        }
+      }
+    });
 
     container.innerHTML = `
       <div style="background: #121214; border: 1px solid #27272a; padding: 16px; border-radius: 10px; display: flex; flex-direction: column; gap: 12px; color: white; font-size: 13px; width: 100%; box-sizing: border-box;">
@@ -92,13 +190,16 @@ window.Game2Admin = {
           <span style="color: #a1a1aa; font-size: 12px; background: #18181b; padding: 3px 8px; border-radius: 4px;">Aktiv: <b style="color: #fff;">${this.selectedCountry} (S${this.selectedDifficulty})</b></span>
         </div>
 
+        <!-- ÜBERSICHTLICHE ADMIN-BENACHRICHTIGUNGEN FÜR BONUS & MEILENSTEINE -->
+        ${milestoneAlertsHtml ? `<div style="display: flex; flex-direction: column; gap: 6px; background: #18181b; padding: 10px; border-radius: 8px; border: 1px dashed #3f3f46;"><span style="font-size: 10px; color: #a1a1aa; text-transform: uppercase; font-weight: bold;">🔔 Akteneinblicke & Boni bereit:</span>${milestoneAlertsHtml}</div>` : ''}
+
         <!-- RUNDEN-PUNKTE ANPASSEN -->
         <div style="background: #18181b; border: 1px solid #27272a; padding: 8px 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
           <span style="font-size: 11px; color: #a1a1aa; font-weight: bold; text-transform: uppercase;">Runden-Punkte anpassen:</span>
           <div style="display: flex; gap: 10px; flex-wrap: wrap;">
             ${Object.entries(teamColors).map(([t, col]) => `
-              <div style="display: flex; align-items: center; gap: 4px; background: #09090b; border: 1px solid ${col}; padding: 3px 8px; border-radius: 6px;">
-                <span style="font-weight: bold; color: ${col}; font-size: 11px; text-transform: capitalize;">${t}: ${scores[t] || 0}</span>
+              <div style="display: flex; align-items: center; gap: 4px; background: #09090b; border: 1px solid ${col}; padding: 3px 8px; border-radius: 6px;" title="Besitz: ${countryCounts[t]} Länder">
+                <span style="font-weight: bold; color: ${col}; font-size: 11px; text-transform: capitalize;">${t} (${countryCounts[t]}L): ${scores[t] || 0}P</span>
                 <button onclick="Game2Admin.modifyScore('${t}', -1)" style="background: #27272a; color: #fff; border: none; width: 20px; height: 20px; border-radius: 3px; cursor: pointer; font-weight: bold;">-</button>
                 <button onclick="Game2Admin.modifyScore('${t}', 1)" style="background: ${col}; color: #000; border: none; width: 20px; height: 20px; border-radius: 3px; cursor: pointer; font-weight: bold;">+</button>
               </div>
@@ -116,11 +217,12 @@ window.Game2Admin = {
             ${Object.keys(this.continentsStructure).map(cName => {
               const isExpanded = !!this.expandedContinents[cName];
               const countries = this.continentsStructure[cName];
+              const cOwner = this.getContinentOwner(cName);
 
               return `
-                <div style="background: #18181b; border: 1px solid #27272a; border-radius: 6px; overflow: hidden; margin-bottom: 4px;">
+                <div style="background: #18181b; border: 1px solid ${cOwner ? teamColors[cOwner] : '#27272a'}; border-radius: 6px; overflow: hidden; margin-bottom: 4px;">
                   <div onclick="Game2Admin.toggleContinent('${cName}')" style="padding: 8px 10px; background: #1f1f23; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 12px; font-weight: bold;">
-                    <span>${isExpanded ? '▼' : '►'} ${cName}</span>
+                    <span>${isExpanded ? '▼' : '►'} ${cName} ${cOwner ? `(Besitzer: ${cOwner.toUpperCase()})` : ''}</span>
                     <span style="font-size: 10px; color: #71717a;">${countries.length} Länder</span>
                   </div>
 
@@ -204,7 +306,7 @@ window.Game2Admin = {
                 <button onclick="Game2Admin.evaluateAnswer('rot')" style="background: #f87171; color: black; border: none; padding: 8px 4px; border-radius: 4px; font-weight: bold; font-size: 11px; cursor: pointer;">Rot</button>
                 <button onclick="Game2Admin.evaluateAnswer('gruen')" style="background: #4ade80; color: black; border: none; padding: 8px 4px; border-radius: 4px; font-weight: bold; font-size: 11px; cursor: pointer;">Grün</button>
                 <button onclick="Game2Admin.evaluateAnswer('gelb')" style="background: #facc15; color: black; border: none; padding: 8px 4px; border-radius: 4px; font-weight: bold; font-size: 11px; cursor: pointer;">Gelb</button>
-                <button onclick="Game2Admin.evaluateAnswer('falsch')" style="background: #ffffff; color: black; border: none; padding: 8px 4px; border-radius: 4px; font-weight: bold; font-size: 11px; cursor: pointer;" title="Falsch beantwortet (wird Weiß)">❌ Falsch</button>
+                <button onclick="Game2Admin.evaluateAnswer('falsch')" style="background: #ffffff; color: black; border: none; padding: 8px 4px; border-radius: 4px; font-weight: bold; font-size: 11px; cursor: pointer;" title="Falsch beantwortet">❌ Falsch</button>
               </div>
             </div>
 
@@ -221,6 +323,13 @@ window.Game2Admin = {
 
       </div>
     `;
+  },
+
+  async claimBonus(teamKey, milestoneKey, pointsToAdd, bonusTitle) {
+    this.claimedMilestones[milestoneKey] = true;
+    await this.modifyScore(teamKey, pointsToAdd);
+    alert(`Erfolgreich ${pointsToAdd} Punkt(e) für ${bonusTitle} an Team ${teamKey.toUpperCase()} vergeben!`);
+    this.renderAdminPanel();
   },
 
   async saveQuestionToSupabase() {
@@ -272,6 +381,8 @@ window.Game2Admin = {
   async resetGame() {
     if (!confirm("Wirklich das gesamte Spiel (alle Stufen und Eroberungen) auf Null zurücksetzen?")) return;
     
+    this.claimedMilestones = {};
+
     await supabaseClient.from('game2_countries').update({ 
       diff_1_team: null, 
       diff_2_team: null, 
