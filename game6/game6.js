@@ -22,8 +22,11 @@ const Game6 = {
     const { data } = await supabaseClient.from('player_slots').select('*').order('slot_id');
     if (data) {
       this.allSlots = data;
+      // FIX: Hier waren Kapitäne und Teammates vertauscht.
+      // Kapitäne sind die Spieler mit is_captain === true. 
+      // Teammates sind alle anderen aktiven Spieler in Teams.
       this.captains = data.filter(s => s.is_captain === true).map(s => s.slot_id);
-      this.teammates = data.filter(s => !s.is_captain && s.team && s.team !== 'neutral').map(s => s.slot_id);
+      this.teammates = data.filter(s => (!s.is_captain || s.is_captain === false) && s.team && s.team !== 'neutral').map(s => s.slot_id);
     }
   },
 
@@ -103,6 +106,7 @@ const Game6 = {
     const isCaptainsMode = (this.state.bidding_mode === 'captains');
     const focusedSlot = this.state.active_performer_slot;
 
+    // FIX: Im Kapitäns-Modus nehmen wir die echten Kapitäne, im Teammates-Modus die Teammates
     const activeBiddingSlots = isCaptainsMode 
       ? (this.captains.length > 0 ? this.captains : ['player_1', 'player_2', 'player_3', 'player_4'])
       : (this.teammates.length > 0 ? this.teammates : ['player_5', 'player_6', 'player_7', 'player_8']);
@@ -179,21 +183,20 @@ const Game6 = {
 
         if (titleEl) titleEl.innerText = `${isCap ? '👑' : '👤'} ${displayName}`;
 
-        if (wrapEl && (this.activeRenderedSlots[idx] !== slotId || !wrapEl.hasChildNodes())) {
-          this.activeRenderedSlots[idx] = slotId;
-          const streamUrl = typeof getStreamUrl === 'function' ? getStreamUrl(slotId) : `https://vdo.ninja/?view=${slotId}&solo=1&room=DieElmigos_Stream&password=mikestinkt&quality=2&framerate=24&bitrate=500&max_bitrate=800&codec=vp9`;
-          wrapEl.innerHTML = `<iframe src="${streamUrl}" allow="autoplay; camera; microphone; fullscreen; display-capture" style="width:100%; height:100%; border:none;"></iframe>`;
+        // FIX: Erzwingt das korrekte Laden der iFrames in den 4 Raster-Boxen der Mitte
+        if (wrapEl) {
+          if (this.activeRenderedSlots[idx] !== slotId || !wrapEl.querySelector('iframe')) {
+            this.activeRenderedSlots[idx] = slotId;
+            const streamUrl = typeof getStreamUrl === 'function' ? getStreamUrl(slotId) : `https://vdo.ninja/?view=${slotId}&solo=1&room=DieElmigos_Stream&password=mikestinkt&quality=2&mesh=0&maxviews=100&codec=vp9&clean`;
+            wrapEl.innerHTML = `<iframe src="${streamUrl}" allow="autoplay; camera; microphone; fullscreen; display-capture" style="width:100%; height:100%; border:none;"></iframe>`;
+          }
         }
 
         const isOut = outSlots.includes(slotId);
         if (overlayEl) overlayEl.style.display = isOut ? 'flex' : 'none';
 
         if (boxEl) {
-          const isActiveBiddingTurn = activeBiddingSlots.includes(slotId);
-
-          if (!isActiveBiddingTurn) {
-            boxEl.className = "g6-poker-seat g6-seat-dimmed";
-          } else if (isOut) {
+          if (isOut) {
             boxEl.className = "g6-poker-seat g6-seat-normal";
             boxEl.style.opacity = '0.35';
             boxEl.style.filter = 'grayscale(100%)';
