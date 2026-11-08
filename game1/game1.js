@@ -213,7 +213,7 @@ window.Game1Player = {
     stage.innerHTML = `
       <div style="width: 100%; display: flex; flex-direction: column; gap: 24px;">
         <div style="background: #18181b; border: 2px solid #3f3f46; padding: 30px; border-radius: 14px; text-align: center; box-shadow: inset 0 0 20px rgba(0,0,0,0.6);">
-          <div style="font-size: 16px; font-weight: bold; color: #facc15; margin-bottom: 24px; letter-spacing: 2px; text-shadow: 0 0 10px rgba(250,204,21,0.4);">⚡ DRAMATISCHE AUSWERTUNG ⚡</div>
+          <div style="font-size: 16px; font-weight: bold; color: #facc15; margin-bottom: 24px; letter-spacing: 2px; text-shadow: 0 0 10px rgba(250,204,21,0.4);"> AUSWERTUNG:</div>
           
           <div style="display: flex; flex-direction: column; gap: 14px; margin: 10px 0;">
             ${['blau', 'rot', 'gruen', 'gelb'].map(t => {
